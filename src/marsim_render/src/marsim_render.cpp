@@ -394,7 +394,9 @@ namespace marsim {
             const auto fps = cnt / total_t;
             cnt = 0;
             total_t = 0;
-            std::cout << " -- [MARSIM] Running FPS: " << fps << std::endl;
+            if (cfg_.print_time_consumption) { // added by Peixuan Shu
+                std::cout << " -- [MARSIM] Running FPS: " << fps << std::endl;
+            }
         }
     }
 

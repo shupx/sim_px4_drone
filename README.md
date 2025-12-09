@@ -15,7 +15,7 @@ Author: Peixuan Shu (Beihang University)
 
 ```bash
 # single px4 drone + sim mavros + visualize (wallclock time)
-roslaunch px4_rotor_sim px4_rotor_sim_single.launch use_sim_time:=false
+roslaunch px4_rotor_sim px4_rotor_sim_single_no_namespace.launch
 # specify the positioning type (local/gps) and initial position in the launch file.
 ```
 

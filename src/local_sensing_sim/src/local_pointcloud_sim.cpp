@@ -205,12 +205,13 @@ private:
 int main(int argc, char** argv) {
     ros::init(argc, argv, "local_pointcloud_sim");
     ros::NodeHandle nh;
+    ros::NodeHandle nh_private("~");
 
     std::string config_path;
     std::string default_config_path = std::string(ROOT_DIR) + "config/local_pointcloud_sim.yaml";
 
     // Try to get config from parameters
-    if (nh.getParam("config_path", config_path)) {
+    if (nh_private.getParam("config_path", config_path)) {
         ROS_INFO("Loading config from ROS param 'config_path': %s", config_path.c_str());
     } else {
         config_path = default_config_path;

@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Different arguments for each vehicle -->
+
+    <arg name="namespace" default="uav1"/>
+    <arg name="init_x_East_metre" default="0.0"/>
+    <arg name="init_y_North_metre" default="0.0"/>
+    <arg name="init_z_Up_metre" default="0.0"/>
+    <arg name="init_roll_deg" default="0.0"/>
+    <arg name="init_pitch_deg" default="0.0"/>
+    <arg name="init_yaw_deg" default="0.0"/>
+    <!-- world origin gps values if local_pos_source = 1 -->
+    <arg name="world_origin_latitude_deg" default="39.978861"/> <!-- degree -->
+    <arg name="world_origin_longitude_deg" default="116.339803"/> <!-- degree -->
+    <arg name="world_origin_AMSL_alt_metre" default="53.0"/> <!-- metre (Above Mean Sea Level) (not WGS84/ELlipsoid of GPS) -->
+    
+    <!-- Same arguments for each vehicle that needs set -->
+    <arg name="visualize_max_freq" default="20"/>
+    <arg name="use_sim_time" default="false"/> <!-- Note that 'use_sim_time' param is global. All nodes in all launch files will use sim time if use_sim_time is set true in any launch file -->
+    <arg name="local_pos_source" default="0"/> <!-- 0 is mocap/uwb, 1 is GPS -->
+    <!-- 0: mavros/local_position/pose will output the world coordinates of the drone -->
+    <!-- 1: mavros/local_position/pose will output the coordinates relative to the initial point or gp_origin which can be changed by mavros/globa_position/set_gp_origin -->
+    <arg name="open_rviz" default="true"/>
+
+    <!-- Same arguments for each vehicle that do not need set -->
+
+    <arg name="mavros_sim_plugin_config_yaml" default="$(find px4_rotor_sim)/launch/mavros_px4_config.yaml"/>
+    <arg name="px4_rotor_sim_param_config_yaml" default="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+    
+ <!-- if not use sim time, no need to use nodelet as there is no accelerating -->
+<arg name="use_nodelet_manager" value="$(arg use_sim_time)"/>
+
+    <group if="$(arg use_nodelet_manager)">  <!-- /nodelet_manager should be lauched by sim_clock.launch -->
+    	<param name="/use_sim_time" value="true"/>
+        <param name="/use_sss_sim_time" value="true"/>
+        <node pkg="nodelet" type="nodelet" name="mavros_px4_quadrotor_sim_nodelet_$(arg namespace)" args="load mavros_px4_quadrotor_sim_nodelet /nodelet_manager" output="screen">
+            <!-- load local position source -->
+            <param name="local_pos_source" value="$(arg local_pos_source)"/>
+            <!-- load init position -->
+            <param name="init_x_East_metre" value="$(arg init_x_East_metre)"/>
+            <param name="init_y_North_metre" value="$(arg init_y_North_metre)"/>
+            <param name="init_z_Up_metre" value="$(arg init_z_Up_metre)"/>
+            <param name="init_roll_deg" value="$(arg init_roll_deg)"/>
+            <param name="init_pitch_deg" value="$(arg init_pitch_deg)"/>
+            <param name="init_yaw_deg" value="$(arg init_yaw_deg)"/>
+            <param name="world_origin_latitude_deg" value="$(arg world_origin_latitude_deg)" type="double"/>
+            <param name="world_origin_longitude_deg" value="$(arg world_origin_longitude_deg)" type="double"/>
+            <param name="world_origin_AMSL_alt_metre" value="$(arg world_origin_AMSL_alt_metre)" type="double"/>
+            <!-- load px4 param -->
+            <rosparam command="load" file="$(arg px4_rotor_sim_param_config_yaml)" />    
+            <param name="visualize_max_freq" value="$(arg visualize_max_freq)"/> 
+            <!-- for robot TF visualizer -->
+            <param name="base_link_tf_prefix" value="$(arg namespace)"/>
+            <!-- for marker name visualize -->
+            <param name="visualize_marker_name" value="$(arg namespace)"/>
+            <!-- load mavros plugin config (Not mandatory ) -->
+            <!-- rosparam command="load" file="$(arg mavros_sim_plugin_config_yaml)" /--> 
+        </node>
+    </group>
+
+    <group unless="$(arg use_nodelet_manager)">  <!--launched as a normal ROS node -->
+        <node pkg="nodelet" type="nodelet" name="mavros_px4_quadrotor_sim_nodelet_$(arg namespace)" args="standalone mavros_px4_quadrotor_sim_nodelet" output="screen">
+            <!-- load local position source -->
+            <param name="local_pos_source" value="$(arg local_pos_source)"/>
+            <!-- load init position -->
+            <param name="init_x_East_metre" value="$(arg init_x_East_metre)"/>
+            <param name="init_y_North_metre" value="$(arg init_y_North_metre)"/>
+            <param name="init_z_Up_metre" value="$(arg init_z_Up_metre)"/>
+            <param name="init_roll_deg" value="$(arg init_roll_deg)"/>
+            <param name="init_pitch_deg" value="$(arg init_pitch_deg)"/>
+            <param name="init_yaw_deg" value="$(arg init_yaw_deg)"/>
+            <param name="world_origin_latitude_deg" value="$(arg world_origin_latitude_deg)" type="double"/>
+            <param name="world_origin_longitude_deg" value="$(arg world_origin_longitude_deg)" type="double"/>
+            <param name="world_origin_AMSL_alt_metre" value="$(arg world_origin_AMSL_alt_metre)" type="double"/>
+            <!-- load px4 param -->
+            <rosparam command="load" file="$(arg px4_rotor_sim_param_config_yaml)" />   
+            <param name="visualize_max_freq" value="$(arg visualize_max_freq)"/> 
+            <!-- for robot TF visualizer -->
+            <param name="base_link_tf_prefix" value="$(arg namespace)"/>
+            <!-- for marker name visualize -->
+            <param name="visualize_marker_name" value="$(arg namespace)"/>
+            <!-- load mavros plugin config (Not mandatory ) -->
+            <!-- rosparam command="load" file="$(arg mavros_sim_plugin_config_yaml)" /-->      
+        </node>
+    </group>
+
+    <!-- Visualization -->
+    <param name="robot_description" textfile="$(find px4_rotor_sim)/model/iris.urdf" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
+        <param name="tf_prefix" value="$(arg namespace)"/>
+    </node>
+    <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" /> -->  <!-- joint states and base_link TF published by drone_visualizer instance in mavros_px4_quadrotor_sim_node already -->
+    <group if="$(arg open_rviz)">
+        <node name="rviz_px4_sim" pkg="rviz" type="rviz" args="-d $(find px4_rotor_sim)/launch/single_px4_rotor_no_namespace.rviz" required="false" />
+    </group>
+
+
+</launch>

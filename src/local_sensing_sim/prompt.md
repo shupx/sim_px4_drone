@@ -1,2 +1,0 @@
-## local lidar sim
-仿照这个文件，新建一个local_pointcloud_sim.cpp ROS节点，接收一个pose或者odom话题，发布global_pc和local_pc，传入配置文件，里面除了包含general_360_lidar.yaml类似的render需要的lidar参数，还有这个ros节点的话题名，pcd name等。配置文件的读取方式和marsim_render.hpp里用config.hpp一样，需要建一个config类用yaml loader读
