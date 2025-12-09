@@ -159,7 +159,7 @@ private:
             // Convert to ROS message
             sensor_msgs::PointCloud2 pc_msg;
             pcl::toROSMsg(*local_cloud, pc_msg);
-            pc_msg.header.frame_id = "world";
+            pc_msg.header.frame_id = config_.frame_id;
             pc_msg.header.stamp = last_pose_time_;
 
             local_pc_pub_.publish(pc_msg);
@@ -188,7 +188,7 @@ private:
 
                 sensor_msgs::PointCloud2 pc_msg;
                 pcl::toROSMsg(*global_cloud, pc_msg);
-                pc_msg.header.frame_id = "world";
+                pc_msg.header.frame_id = config_.frame_id;
                 pc_msg.header.stamp = ros::Time::now();
 
                 global_pc_pub_.publish(pc_msg);

@@ -32,6 +32,9 @@ namespace local_pc_sim {
             loader.LoadParam("local_pc_topic", local_pc_topic, std::string("/cloud_registered"), false);
             loader.LoadParam("global_pc_topic", global_pc_topic, std::string("/global_pc"), false);
             
+            // Frame ID for point cloud messages
+            loader.LoadParam("frame_id", frame_id, std::string("map"), false);
+            
             // Sensing rate (needed for ROS node timer)
             loader.LoadParam("sensing_rate", sensing_rate, 10, false);
         }
@@ -42,6 +45,9 @@ namespace local_pc_sim {
         bool use_odom = false;  // If true, use odom_topic; if false, use pose_topic
         std::string local_pc_topic = "/cloud_registered";
         std::string global_pc_topic = "/global_pc";
+        
+        // Frame ID for point cloud messages
+        std::string frame_id = "map";
         
         // Sensing rate (Hz) - needed for timer
         int sensing_rate = 10;

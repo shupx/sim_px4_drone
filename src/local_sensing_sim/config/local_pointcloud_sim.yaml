@@ -19,6 +19,9 @@ pose_topic: "mavros/local_position/pose"
 local_pc_topic: "cloud_registered"    # Local point cloud (as seen by the drone)
 global_pc_topic: "global_pc"          # Global point cloud (entire map)
 
+# Frame ID for point cloud messages
+frame_id: "map"
+
 # ============================================================================
 # LiDAR Sensor Parameters (from marsim_render)
 # ============================================================================
