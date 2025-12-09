@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# px4_rotor_sim Dependencies
+sudo apt install ros-noetic-mavros ros-noetic-mavros-extras ros-noetic-robot-state-publisher -y
+pip3 install PyQt5
+
+# marsim_render
+
+# local_sensing_sim
+

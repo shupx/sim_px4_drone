@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Local Pointcloud Simulator Node -->
+    <!-- This node renders local and global point clouds based on drone pose/odometry -->
+
+    <arg name="rviz_enable" default="true"/>
+
+    <!-- Configuration file name (should be in config/ directory) -->
+    <arg name="config_path" default="$(find local_sensing_sim)/config/local_pointcloud_sim.yaml"/>
+
+    <node pkg="local_sensing_sim" type="local_pointcloud_sim_node" name="local_pointcloud_sim" output="screen">
+        <param name="config_path" value="$(arg config_path)" />
+    </node>
+
+    <!-- <group ns="uav1">
+        <node pkg="local_sensing_sim" type="local_pointcloud_sim_node" name="local_pointcloud_sim" output="screen">
+            <param name="config_path" value="$(arg config_path)" />
+        </node>
+    </group> -->
+
+    <group if="$(arg rviz_enable)">
+        <node pkg="rviz" type="rviz" name="viz_pc_sim" args="-d $(find local_sensing_sim)/launch/pc_sim.rviz"></node>
+    </group>
+
+</launch>
