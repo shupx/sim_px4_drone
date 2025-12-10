@@ -64,14 +64,6 @@ public:
         ROS_INFO("Publishing to global_pc_topic: %s", config_.global_pc_topic.c_str());
         global_pc_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(config_.global_pc_topic, 10);
 
-        // Setup timer for publishing local point cloud
-        double publish_rate = 1.0 / config_.sensing_rate;
-        local_pc_timer_ = nh_.createTimer(
-            ros::Duration(publish_rate),
-            &LocalPointCloudSimulator::publishLocalPointCloud,
-            this
-        );
-
         // Initialize position and orientation
         current_position_ = Vec3f(0, 0, 0);
         current_quaternion_ = Eigen::Quaternionf::Identity();
@@ -82,6 +74,53 @@ public:
 
     ~LocalPointCloudSimulator() {
         ROS_INFO("Shutting down LocalPointCloudSimulator");
+    }
+
+    void getSensingRate(double& rate) const {
+        rate = config_.sensing_rate;
+    }
+
+    void publishLocalPointCloud() {
+        if (!pose_received_) {
+            if (config_.use_odom) {
+                ROS_WARN_ONCE("Waiting for odom message on topic: %s", config_.odom_topic.c_str());
+            }
+            else {
+                ROS_WARN_ONCE("Waiting for pose message on topic: %s", config_.pose_topic.c_str());
+            }
+            return;
+        }
+
+        // Check if there are subscribers
+        if (local_pc_pub_.getNumSubscribers() <= 0) {
+            return;
+        }
+
+        try {
+            // Render point cloud from current position
+            pcl::PointCloud<marsim::PointType>::Ptr local_cloud(
+                new pcl::PointCloud<marsim::PointType>
+            );
+
+            render_ptr_->renderOnceInWorld(
+                current_position_,
+                current_quaternion_,
+                last_pose_time_.toSec(),
+                local_cloud
+            );
+
+            // Convert to ROS message
+            sensor_msgs::PointCloud2 pc_msg;
+            pcl::toROSMsg(*local_cloud, pc_msg);
+            pc_msg.header.frame_id = config_.frame_id;
+            pc_msg.header.stamp = last_pose_time_;
+
+            local_pc_pub_.publish(pc_msg);
+
+            ROS_DEBUG("Published local point cloud with %zu points", local_cloud->size());
+        } catch (const std::exception& e) {
+            ROS_ERROR("Error publishing local point cloud: %s", e.what());
+        }
     }
 
 private:
@@ -125,49 +164,6 @@ private:
 
         // Publish global point cloud if there are subscribers
         publishGlobalPointCloud();
-    }
-
-    void publishLocalPointCloud(const ros::TimerEvent& event) {
-        if (!pose_received_) {
-            if (config_.use_odom) {
-                ROS_WARN_ONCE("Waiting for odom message on topic: %s", config_.odom_topic.c_str());
-            }
-            else {
-                ROS_WARN_ONCE("Waiting for pose message on topic: %s", config_.pose_topic.c_str());
-            }
-            return;
-        }
-
-        // Check if there are subscribers
-        if (local_pc_pub_.getNumSubscribers() <= 0) {
-            return;
-        }
-
-        try {
-            // Render point cloud from current position
-            pcl::PointCloud<marsim::PointType>::Ptr local_cloud(
-                new pcl::PointCloud<marsim::PointType>
-            );
-
-            render_ptr_->renderOnceInWorld(
-                current_position_,
-                current_quaternion_,
-                last_pose_time_.toSec(),
-                local_cloud
-            );
-
-            // Convert to ROS message
-            sensor_msgs::PointCloud2 pc_msg;
-            pcl::toROSMsg(*local_cloud, pc_msg);
-            pc_msg.header.frame_id = config_.frame_id;
-            pc_msg.header.stamp = last_pose_time_;
-
-            local_pc_pub_.publish(pc_msg);
-
-            ROS_DEBUG("Published local point cloud with %zu points", local_cloud->size());
-        } catch (const std::exception& e) {
-            ROS_ERROR("Error publishing local point cloud: %s", e.what());
-        }
     }
 
     void publishGlobalPointCloud() {
@@ -221,7 +217,19 @@ int main(int argc, char** argv) {
     try {
         LocalPointCloudSimulator simulator(nh, config_path);
         ROS_INFO("LocalPointCloudSimulator node started");
-        ros::spin();
+        ros::AsyncSpinner spinner(1);
+        spinner.start();
+
+        /* Main publish local point cloud loop */
+        double sensing_rate;
+        simulator.getSensingRate(sensing_rate);
+        ros::Rate rate(sensing_rate);
+        while (ros::ok()) {
+            simulator.publishLocalPointCloud();
+            rate.sleep();
+        }
+
+        ros::waitForShutdown();
     } catch (const std::exception& e) {
         ROS_FATAL("Failed to start LocalPointCloudSimulator: %s", e.what());
         return 1;
