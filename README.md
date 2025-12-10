@@ -17,6 +17,17 @@ Author: Peixuan Shu (Beihang University)
 # single px4 drone + sim mavros + visualize (wallclock time)
 roslaunch px4_rotor_sim px4_rotor_sim_single_no_namespace.launch
 # specify the positioning type (local/gps) and initial position in the launch file.
+
+# UI control
+rosrun px4_rotor_sim keyboard_control_ros1.py
+```
+
+```bash
+# single drone with /uav1 namespace
+roslaunch px4_rotor_sim px4_rotor_sim_single.launch use_sim_time:=false namespace:=uav1
+
+# UI control
+rosrun px4_rotor_sim keyboard_control_ros1.py __ns:=/uav1
 ```
 
 We also offer a lock-stepped multi-drone simulation so that you can accelerate the simulation as you want:
