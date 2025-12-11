@@ -26,8 +26,10 @@ MavrosSim::MavrosSim(int agent_id, const ros::NodeHandle &nh, const ros::NodeHan
 {
     uas_ = std::make_shared<UAS>(); // uas_ stores some common data and functions
     uas_->set_tgt(1, 1); // set target_system_id, target_component_id
-    uas_->set_timesync_mode(UAS::timesync_mode::PASSTHROUGH); // PASSTHROUGH: pass mavlink message time rather than ROS time into ROS message timestamp header
+    // uas_->set_timesync_mode(UAS::timesync_mode::PASSTHROUGH); // PASSTHROUGH: pass mavlink message time rather than ROS time into ROS message timestamp header
     // timesync_mode will be overwritten by the parameter "time/timesync_mode" in px4_config.yaml (default MAVLINK) if sys_time.cpp plugin is loaded!
+
+    uas_->set_timesync_mode(UAS::timesync_mode::MAVLINK); // pass ROS time into ROS message timestamp header (modified by Peixuan Shu on 2025-12-11)
 
     /* Load mavros_sim plugins(mavlink msg -> mavros ROS msg; mavros ROS msg -> mavlink msg)*/
     setpoint_raw_plugin_ = std::make_unique<std_plugins::SetpointRawPlugin>(agent_id_, uas_, nh_, nh_private_);
