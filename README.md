@@ -60,6 +60,8 @@ The `marsim_render` folder is part of the super planner from https://github.com/
 
 The orignial complete old version of marsim is at https://github.com/hku-mars/MARSIM
 
+> In marsim, the y=0 plane is a virtual floor even if there is no floor point clouds in the pcd file.
+
 #### local_sensing_sim
 
 ROS wrapper of marsim_render and other sensors (TODO).
