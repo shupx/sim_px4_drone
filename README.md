@@ -1,11 +1,11 @@
 
 # sim_px4_drone
 
-## simulated mavros + tailored px4 pilot drones
+## simulated mavros + trimmed PX4 controller
 
 #### px4_rotor_sim, sss_sim_env
 
-Ultra-lightweight PX4 drone and mavros simulation (with full PX4 pos,vel,att controller). Currently we only support `OFFBOARD` mode.
+Ultra-lightweight PX4 drone and mavros simulation (with PX4 pos,vel,att controller from v1.13.3). Currently we only support `OFFBOARD` mode.
 
 **No need for PX4 source code and Gazebo!**
 
