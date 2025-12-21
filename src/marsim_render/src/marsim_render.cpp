@@ -179,49 +179,142 @@ namespace marsim {
         //avia pattern
         {
             ScopeTimer timer("Fill pattern matrix",  cfg_.print_time_consumption);
+
+            /**
+             * @bug The following AVIA pattern generation has a serious bug. The values become unstable as t_pattern_start increases.
+             * This needs to be fixed in the future.
+             * @author Peixuan Shu
+             * @attention https://github.com/hku-mars/MARSIM/issues/31
+             * @date 2025-12-21
+             */
+            // if (cfg_.lidar_type == AVIA) {
+            //     pattern_matrix.setConstant(0);
+            //     decimal_t w1 = 763.82589; //7294.0*2.0*3.1415926/60.0
+            //     decimal_t w2 = -488.41293788; // -4664.0*2.0*3.1415926/60.0
+            //     // int linestep = 2;
+            //     // decimal_t point_duration = 0.000025;
+            //     decimal_t point_duration = 0.000004167 * 6;
+
+            //     decimal_t t_duration = 1.0 / cfg_.sensing_rate;
+            //     decimal_t t_start = t_pattern_start;
+
+            //     decimal_t scale_x = 0.48 * cfg_.width / 2.0;
+            //     decimal_t scale_y = 0.43 * cfg_.height / 2.0;
+
+            //     int linestep = ceil(1.4 / 0.2);
+            //     // std::cout << "linestep = " << linestep << std::endl;
+
+            //     for (decimal_t t_i = t_start; t_i < t_start + t_duration; t_i = t_i + point_duration) {
+            //         int x = round(scale_x * (cos(w1 * t_i) + cos(w2 * t_i))) + round(0.5 * cfg_.width);
+            //         int y = round(scale_y * (sin(w1 * t_i) + sin(w2 * t_i))) + round(0.5 * cfg_.height);
+
+            //         if (x > (cfg_.width - 1)) {
+            //             x = (cfg_.width - 1);
+            //         }
+            //         else if (x < 0) {
+            //             x = 0;
+            //         }
+
+            //         if (y > (cfg_.height - 1)) {
+            //             y = (cfg_.height - 1);
+            //         }
+            //         else if (y < 0) {
+            //             y = 0;
+            //         }
+
+            //         pattern_matrix(x, y) = 2; //real pattern
+            //         pattern_matrix(x, y + linestep) = 2;
+            //         pattern_matrix(x, y + 2 * linestep) = 2;
+            //         pattern_matrix(x, y + 3 * linestep) = 2;
+            //         pattern_matrix(x, y - linestep) = 2;
+            //         pattern_matrix(x, y - 2 * linestep) = 2;
+            //     }
+            // }
+
+            /**
+             * Fix the above AVIA pattern generation bug.
+             * @author Peixuan Shu
+             * @date 2025-12-21
+             */
             if (cfg_.lidar_type == AVIA) {
                 pattern_matrix.setConstant(0);
-                decimal_t w1 = 763.82589; //7294.0*2.0*3.1415926/60.0
-                decimal_t w2 = -488.41293788; // -4664.0*2.0*3.1415926/60.0
-                // int linestep = 2;
-                // decimal_t point_duration = 0.000025;
-                decimal_t point_duration = 0.000004167 * 6;
 
-                decimal_t t_duration = 1.0 / cfg_.sensing_rate;
-                decimal_t t_start = t_pattern_start;
+                using std::cos;
+                using std::sin;
+                using std::round;
+                using std::fmod;
+                using std::ceil;
 
-                decimal_t scale_x = 0.48 * cfg_.width / 2.0;
-                decimal_t scale_y = 0.43 * cfg_.height / 2.0;
+                const decimal_t PI = 3.141592653589793;
 
-                int linestep = ceil(1.4 / 0.2);
-                // std::cout << "linestep = " << linestep << std::endl;
+                // ================= 参数 =================
+                const decimal_t w1 = 763.82589;
+                const decimal_t w2 = -488.41293788;
 
-                for (decimal_t t_i = t_start; t_i < t_start + t_duration; t_i = t_i + point_duration) {
-                    int x = round(scale_x * (cos(w1 * t_i) + cos(w2 * t_i))) + round(0.5 * cfg_.width);
-                    int y = round(scale_y * (sin(w1 * t_i) + sin(w2 * t_i))) + round(0.5 * cfg_.height);
+                const decimal_t point_duration = 0.000004167 * 6;
+                const decimal_t t_duration     = 1.0 / cfg_.sensing_rate;
 
-                    if (x > (cfg_.width - 1)) {
-                        x = (cfg_.width - 1);
-                    }
-                    else if (x < 0) {
-                        x = 0;
-                    }
+                const int64_t N = static_cast<int64_t>(t_duration / point_duration);
 
-                    if (y > (cfg_.height - 1)) {
-                        y = (cfg_.height - 1);
-                    }
-                    else if (y < 0) {
-                        y = 0;
-                    }
+                const decimal_t scale_x = 0.48 * cfg_.width  / 2.0;
+                const decimal_t scale_y = 0.43 * cfg_.height / 2.0;
 
-                    pattern_matrix(x, y) = 2; //real pattern
-                    pattern_matrix(x, y + linestep) = 2;
+                const int linestep = static_cast<int>(ceil(1.4 / 0.2));
+
+                // ================= 周期 =================
+                const decimal_t T1 = 2 * PI / std::abs(w1);
+                const decimal_t T2 = 2 * PI / std::abs(w2);
+
+                // ================= 初始相位（由起始时刻决定） =================
+                decimal_t phase1 = w1 * fmod(t_pattern_start, T1);
+                decimal_t phase2 = w2 * fmod(t_pattern_start, T2);
+
+                // ================= 每步相位增量 =================
+                const decimal_t dphase1 = w1 * point_duration;
+                const decimal_t dphase2 = w2 * point_duration;
+
+                // ================= 主循环 =================
+                for (int64_t i = 0; i < N; ++i) {
+
+                    int x = static_cast<int>(
+                                round(
+                                    scale_x * (cos(phase1) + cos(phase2))
+                                )
+                            ) + static_cast<int>(round(0.5 * cfg_.width));
+
+                    int y = static_cast<int>(
+                                round(
+                                    scale_y * (sin(phase1) + sin(phase2))
+                                )
+                            ) + static_cast<int>(round(0.5 * cfg_.height));
+
+                    // ===== 边界限制 =====
+                    if (x < 0) x = 0;
+                    else if (x > cfg_.width - 1) x = cfg_.width - 1;
+
+                    if (y < 0) y = 0;
+                    else if (y > cfg_.height - 1) y = cfg_.height - 1;
+
+                    // ===== 写 pattern =====
+                    pattern_matrix(x, y) = 2;
+                    pattern_matrix(x, y + linestep)     = 2;
                     pattern_matrix(x, y + 2 * linestep) = 2;
                     pattern_matrix(x, y + 3 * linestep) = 2;
-                    pattern_matrix(x, y - linestep) = 2;
+                    pattern_matrix(x, y - linestep)     = 2;
                     pattern_matrix(x, y - 2 * linestep) = 2;
+
+                    // ===== 相位更新 =====
+                    phase1 += dphase1;
+                    phase2 += dphase2;
+
+                    if (phase1 >= 2 * PI) phase1 -= 2 * PI;
+                    if (phase1 <  0)      phase1 += 2 * PI;
+
+                    if (phase2 >= 2 * PI) phase2 -= 2 * PI;
+                    if (phase2 <  0)      phase2 += 2 * PI;
                 }
             }
+
             else if (cfg_.lidar_type == GENERAL_360) {
                 pattern_matrix.setConstant(0);
                 double step = static_cast<double>(cfg_.height) / 128.0;
@@ -234,24 +327,131 @@ namespace marsim {
                     }
                 }
             }
+
+            /**
+             * @bug The following MID_360 pattern generation has a serious bug. The values become unstable as t_pattern_start increases.
+             * This needs to be fixed.
+             * @author Peixuan Shu
+             * @attention https://github.com/hku-mars/MARSIM/issues/31
+             * @date 2025-12-21
+             */
+            // else if (cfg_.lidar_type == MID_360) {
+            //     pattern_matrix.setConstant(0);
+            //     decimal_t point_duration = 1.0 / 200000.0;
+
+            //     decimal_t t_duration = 1.0 / cfg_.sensing_rate;
+            //     decimal_t t_start = t_pattern_start;
+
+            //     //        decimal_t scale_x = 0.48 * cfg_.width / 2.0;
+            //     //        decimal_t scale_y = 0.43 * cfg_.height / 2.0;
+            //     decimal_t PI = 3.141519265357; // Wrong PI, Peixuan Shu 2025-12-21
+
+            //     for (decimal_t t_i = t_start; t_i < t_start + t_duration; t_i = t_i + point_duration) {
+            //         int x = (int(-round(-62050.63 * t_i + 3.11 * cos(314159.2 * t_i) * sin(628.318 * 2 * t_i))) % 360) /
+            //             cfg_.polar_resolution;
+            //         int y = round(
+            //                 25.5 * cos(20 * PI * t_i) + 4 * cos(2 * PI / 0.006 * t_i) * cos(10000 * PI * t_i) + 22.5) /
+            //             cfg_.polar_resolution + round(0.5 * cfg_.height);
+
+            //         // ROS_INFO("X = %d, Y = %d",x,y);
+            //         if (x > (cfg_.width - 1)) {
+            //             x = (cfg_.width - 1);
+            //         }
+            //         else if (x < 0) {
+            //             x = 0;
+            //         }
+
+            //         if (y > (cfg_.height - 1)) {
+            //             y = (cfg_.height - 1);
+            //         }
+            //         else if (y < 0) {
+            //             y = 0;
+            //         }
+
+            //         pattern_matrix(x, y) = 2; // real pattern
+            //     }
+            // }
+
+            /**
+             * Fix the above MID_360 pattern generation bug.
+             * @author Peixuan Shu
+             * @date 2025-12-21
+             */
             else if (cfg_.lidar_type == MID_360) {
                 pattern_matrix.setConstant(0);
-                decimal_t point_duration = 1.0 / 200000.0;
 
-                decimal_t t_duration = 1.0 / cfg_.sensing_rate;
-                decimal_t t_start = t_pattern_start;
+                using std::cos;
+                using std::sin;
+                using std::round;
+                using std::fmod;
 
-                //        decimal_t scale_x = 0.48 * cfg_.width / 2.0;
-                //        decimal_t scale_y = 0.43 * cfg_.height / 2.0;
-                decimal_t PI = 3.141519265357;
+                const decimal_t PI = M_PI;
 
-                for (decimal_t t_i = t_start; t_i < t_start + t_duration; t_i = t_i + point_duration) {
-                    int x = (int(-round(-62050.63 * t_i + 3.11 * cos(314159.2 * t_i) * sin(628.318 * 2 * t_i))) % 360) /
-                        cfg_.polar_resolution;
-                    int y = round(
-                            25.5 * cos(20 * PI * t_i) + 4 * cos(2 * PI / 0.006 * t_i) * cos(10000 * PI * t_i) + 22.5) /
-                        cfg_.polar_resolution + round(0.5 * cfg_.height);
+                // ================= 时间参数 =================
+                const decimal_t point_duration = 1.0 / 200000.0;
+                const decimal_t t_duration     = 1.0 / cfg_.sensing_rate;
 
+                const int64_t N = static_cast<int64_t>(t_duration / point_duration);
+
+                // ================= 角频率 =================
+                const decimal_t w1 = 314159.2;
+                const decimal_t w2 = 628.318 * 2.0;
+                const decimal_t w3 = 20.0 * PI;
+                const decimal_t w4 = 2.0 * PI / 0.006;
+                const decimal_t w5 = 10000.0 * PI;
+
+                // ================= 周期 =================
+                const decimal_t T1 = 2 * PI / w1;
+                const decimal_t T2 = 2 * PI / w2;
+                const decimal_t T3 = 2 * PI / w3;
+                const decimal_t T4 = 2 * PI / w4;
+                const decimal_t T5 = 2 * PI / w5;
+
+                // ================= 初始相位（由起始时刻决定） =================
+                decimal_t phase1 = w1 * fmod(t_pattern_start, T1);
+                decimal_t phase2 = w2 * fmod(t_pattern_start, T2);
+                decimal_t phase3 = w3 * fmod(t_pattern_start, T3);
+                decimal_t phase4 = w4 * fmod(t_pattern_start, T4);
+                decimal_t phase5 = w5 * fmod(t_pattern_start, T5);
+
+                // ================= 每步相位增量 =================
+                const decimal_t dphase1 = w1 * point_duration;
+                const decimal_t dphase2 = w2 * point_duration;
+                const decimal_t dphase3 = w3 * point_duration;
+                const decimal_t dphase4 = w4 * point_duration;
+                const decimal_t dphase5 = w5 * point_duration;
+
+                // ================= x 线性项（只取 360 周期） =================
+                const decimal_t Tx = 360.0 / 62050.63;
+                decimal_t x_linear =
+                    -62050.63 * fmod(t_pattern_start, Tx);
+
+                const decimal_t x_slope = -62050.63 * point_duration;
+
+                // ================= 主循环 =================
+                for (int64_t i = 0; i < N; ++i) {
+
+                    decimal_t x_val =
+                        x_linear
+                        + 3.11 * cos(phase1) * sin(phase2);
+
+                    int x = static_cast<int>(-round(x_val));
+
+                    x %= 360;
+                    if (x < 0) x += 360; // 规范化到 [0, 360)，否则x为负数时 x %= 360也是个负数
+
+                    x /= cfg_.polar_resolution;
+
+                    int y = static_cast<int>(
+                                round(
+                                    25.5 * cos(phase3)
+                                + 4.0  * cos(phase4) * cos(phase5)
+                                + 22.5
+                                )
+                            ) / cfg_.polar_resolution
+                            + static_cast<int>(round(0.5 * cfg_.height));
+
+                    // ===== 写 pattern_matrix =====
                     // ROS_INFO("X = %d, Y = %d",x,y);
                     if (x > (cfg_.width - 1)) {
                         x = (cfg_.width - 1);
@@ -268,6 +468,15 @@ namespace marsim {
                     }
 
                     pattern_matrix(x, y) = 2; // real pattern
+
+                    // ===== 相位更新 =====
+                    x_linear += x_slope;
+
+                    phase1 += dphase1; if (phase1 >= 2 * PI) phase1 -= 2 * PI;
+                    phase2 += dphase2; if (phase2 >= 2 * PI) phase2 -= 2 * PI;
+                    phase3 += dphase3; if (phase3 >= 2 * PI) phase3 -= 2 * PI;
+                    phase4 += dphase4; if (phase4 >= 2 * PI) phase4 -= 2 * PI;
+                    phase5 += dphase5; if (phase5 >= 2 * PI) phase5 -= 2 * PI;
                 }
             }
         }
