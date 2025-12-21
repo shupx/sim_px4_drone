@@ -29,6 +29,7 @@ private:
     ros::Subscriber pose_sub_, odom_sub_;
     ros::Publisher local_pc_pub_, global_pc_pub_;
     ros::Timer local_pc_timer_;
+    ros::Time t_start_;
 
     std::shared_ptr<marsim::MarsimRender> render_ptr_;
     local_pc_sim::LocalPointCloudSimConfig config_;
@@ -69,6 +70,8 @@ public:
         current_quaternion_ = Eigen::Quaternionf::Identity();
         last_pose_time_ = ros::Time::now();
 
+        t_start_ = ros::Time::now();
+
         ROS_INFO("LocalPointCloudSimulator initialized successfully");
     }
 
@@ -105,7 +108,7 @@ public:
             render_ptr_->renderOnceInWorld(
                 current_position_,
                 current_quaternion_,
-                last_pose_time_.toSec(),
+                (last_pose_time_ - t_start_).toSec(), // avoid large timestamp values
                 local_cloud
             );
 
