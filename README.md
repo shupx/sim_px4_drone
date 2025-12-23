@@ -56,7 +56,7 @@ roslaunch px4_rotor_sim drone_visualizer_multi.launch
 
 It is a OpenGL render library (ROS independent) from MARSlab of HKU. It generates local point cloud and simulates a perfect drone.
 
-The `marsim_render` folder is part of the super planner from https://github.com/hku-mars/SUPER/tree/master/mars_uav_sim (with ROS1 and ROS2)
+The `marsim_render` folder is part of the super planner from https://github.com/hku-mars/SUPER/tree/master/mars_uav_sim (with ROS1 and ROS2) but with improvements by Peixuan Shu.
 
 The orignial complete old version of marsim is at https://github.com/hku-mars/MARSIM
 
