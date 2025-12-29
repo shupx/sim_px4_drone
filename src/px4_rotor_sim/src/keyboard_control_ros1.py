@@ -475,18 +475,18 @@ class DroneControlUIAdvanced(QMainWindow):
             control_layout.setColumnStretch(j, 1)
         
         # Row 1: Q W E (Up/Forward/Down)
-        self.btn_up = ControlButton("Q\nUp")
-        self.btn_forward = ControlButton("W\nForward")
-        self.btn_down = ControlButton("E\nDown")
+        self.btn_up = ControlButton("Q\nUp\nz+")
+        self.btn_forward = ControlButton("W\nForward\nx+")
+        self.btn_down = ControlButton("E\nDown\nz-")
         
         control_layout.addWidget(self.btn_up, 0, 0)
         control_layout.addWidget(self.btn_forward, 0, 1)
         control_layout.addWidget(self.btn_down, 0, 2)
         
         # Row 2: A S D (Left/Backward/Right)
-        self.btn_left = ControlButton("A\nLeft")
-        self.btn_backward = ControlButton("S\nBackward")
-        self.btn_right = ControlButton("D\nRight")
+        self.btn_left = ControlButton("A\nLeft\ny+")
+        self.btn_backward = ControlButton("S\nBackward\nx-")
+        self.btn_right = ControlButton("D\nRight\ny-")
         
         control_layout.addWidget(self.btn_left, 1, 0)
         control_layout.addWidget(self.btn_backward, 1, 1)
