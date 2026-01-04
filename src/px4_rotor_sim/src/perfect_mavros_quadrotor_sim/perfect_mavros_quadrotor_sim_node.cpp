@@ -22,6 +22,8 @@
 #include <mavros_msgs/State.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
 #include <cmath>
 
 class PerfectMavrosDrone
@@ -233,15 +235,43 @@ public:
         }
         
         // Attitude setpoint (yaw)
+        double yaw = 0.0;
+        
         if (msg->type_mask & mavros_msgs::PositionTarget::IGNORE_YAW)
         {
-            // Yaw ignored, keep current orientation
+            // Yaw ignored, extract current yaw
+            tf2::Quaternion q_current;
+            tf2::fromMsg(current_pose_.pose.orientation, q_current);
+            tf2::Matrix3x3 m(q_current);
+            double roll, pitch;
+            m.getRPY(roll, pitch, yaw);
         }
         else
         {
-            // Convert yaw to quaternion
+            yaw = msg->yaw;
+        }
+        
+        // Calculate orientation from acceleration direction and yaw
+        if (!(msg->type_mask & mavros_msgs::PositionTarget::IGNORE_AFX) ||
+            !(msg->type_mask & mavros_msgs::PositionTarget::IGNORE_AFY) ||
+            !(msg->type_mask & mavros_msgs::PositionTarget::IGNORE_AFZ))
+        {
+            // Get acceleration and remove gravity
+            double ax = (msg->type_mask & mavros_msgs::PositionTarget::IGNORE_AFX) ? 0.0 : msg->acceleration_or_force.x;
+            double ay = (msg->type_mask & mavros_msgs::PositionTarget::IGNORE_AFY) ? 0.0 : msg->acceleration_or_force.y;
+            double az = (msg->type_mask & mavros_msgs::PositionTarget::IGNORE_AFZ) ? 0.0 : msg->acceleration_or_force.z;
+            
+            // Remove gravity (assuming ENU frame: gravity is in -z direction)
+            az += 9.81;
+            
+            // Calculate orientation from acceleration and yaw
+            current_pose_.pose.orientation = calculateOrientationFromAcceleration(ax, ay, az, yaw);
+        }
+        else
+        {
+            // No acceleration command, use yaw only
             tf2::Quaternion q;
-            q.setRPY(0.0, 0.0, msg->yaw);
+            q.setRPY(0.0, 0.0, yaw);
             current_pose_.pose.orientation = tf2::toMsg(q);
         }
         
@@ -283,6 +313,162 @@ public:
         // Periodically publish state
         current_state_.header.stamp = ros::Time::now();
         state_pub_.publish(current_state_);
+    }
+
+private:
+    /**
+     * @brief Calculate quaternion from acceleration direction and yaw angle
+     * @param ax Acceleration X in ENU frame (with gravity removed)
+     * @param ay Acceleration Y in ENU frame (with gravity removed)
+     * @param az Acceleration Z in ENU frame (with gravity removed)
+     * @param yaw Yaw angle in radians
+     * @return Quaternion representing the orientation
+     * 
+     * The acceleration vector (after removing gravity) represents the thrust direction,
+     * which is the body z-axis direction in the world (ENU) frame.
+     */
+    geometry_msgs::Quaternion calculateOrientationFromAcceleration(double ax, double ay, double az, double yaw)
+    {
+        // ======= follow PX4 yaw definition and calculation method (body_x在水平面的投影与yaw方向一致) =========
+
+        // std::cout << "[PerfectMavrosDrone] Calculating orientation from acceleration: "
+        //           << "ax=" << ax << ", ay=" << ay << ", az=" << az << ", yaw=" << yaw * 180.0 / M_PI << " deg" << std::endl;
+
+
+        /*========== wrong transform from body_z+yaw -> rot_mat/quaternion  =========
+
+        // Acceleration vector (already with gravity removed)
+        Eigen::Vector3d acc(ax, ay, az);
+        double a_T = acc.norm();
+        
+        if (a_T < 0.01)  // No significant acceleration
+        {
+            // Use yaw only (hover attitude)
+            Eigen::Quaterniond q(Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ()));
+            geometry_msgs::Quaternion q_msg;
+            q_msg.w = q.w();
+            q_msg.x = q.x();
+            q_msg.y = q.y();
+            q_msg.z = q.z();
+            return q_msg;
+        }
+        
+        // Body z-axis (thrust direction) in world frame
+        Eigen::Vector3d zB = acc.normalized();
+        
+        // Desired heading direction (projection of body x-axis on horizontal plane)
+        Eigen::Vector3d xC(std::cos(yaw), std::sin(yaw), 0.0);
+        
+        // Body y-axis: yB = zB × xC
+        Eigen::Vector3d yB = zB.cross(xC).normalized();
+        
+        // Check if yB is valid (not near zero)
+        if (yB.norm() < 0.01)
+        {
+            // Thrust is nearly vertical, use yaw only
+            Eigen::Quaterniond q(Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ()));
+            geometry_msgs::Quaternion q_msg;
+            q_msg.w = q.w();
+            q_msg.x = q.x();
+            q_msg.y = q.y();
+            q_msg.z = q.z();
+            return q_msg;
+        }
+        
+        // Body x-axis: xB = yB × zB
+        Eigen::Vector3d xB = yB.cross(zB);
+        
+        // Construct rotation matrix: R = [xB, yB, zB]
+        // Each column represents a body axis in world coordinates
+        Eigen::Matrix3d R;
+        R << xB, yB, zB;
+        
+        // Convert to quaternion
+        Eigen::Quaterniond q(R);
+        
+        // Convert to ROS message
+        geometry_msgs::Quaternion q_msg;
+        q_msg.w = q.w();
+        q_msg.x = q.x();
+        q_msg.y = q.y();
+        q_msg.z = q.z();
+
+        */
+
+        // Acceleration vector (gravity already removed)
+        Eigen::Vector3d acc(ax, ay, az);
+        double a_T = acc.norm();
+
+        // ===== 1. 无有效推力：yaw-only =====
+        if (a_T < 0.01) {
+            Eigen::Quaterniond q(Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ()));
+            geometry_msgs::Quaternion q_msg;
+            q_msg.w = q.w();
+            q_msg.x = q.x();
+            q_msg.y = q.y();
+            q_msg.z = q.z();
+            return q_msg;
+        }
+
+        // ===== 2. body_z：推力方向（世界系）=====
+        Eigen::Vector3d zB = acc.normalized();
+
+        // ===== 3. PX4 的 y_C：yaw 定义的水平法向 =====
+        // 对应 PX4: Vector3f y_C{-sinf(yaw), cosf(yaw), 0.f};
+        Eigen::Vector3d yC(-std::sin(yaw), std::cos(yaw), 0.0);
+
+        // ===== 4. body_x = y_C × body_z =====
+        Eigen::Vector3d xB = yC.cross(zB);
+
+        // 倒飞保护（PX4 同款）
+        if (zB.z() < 0.0) {
+            xB = -xB;
+        }
+
+        // ===== 5. 推力几乎水平：yaw 退化 =====
+        if (std::abs(zB.z()) < 1e-6 || xB.norm() < 1e-6) {
+            Eigen::Quaterniond q(Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ()));
+            geometry_msgs::Quaternion q_msg;
+            q_msg.w = q.w();
+            q_msg.x = q.x();
+            q_msg.y = q.y();
+            q_msg.z = q.z();
+            return q_msg;
+        }
+
+        xB.normalize();
+
+        // ===== 6. body_y = body_z × body_x =====
+        Eigen::Vector3d yB = zB.cross(xB);
+
+        // ===== 7. 构造旋转矩阵 R = [xB yB zB] =====
+        Eigen::Matrix3d R;
+        R.col(0) = xB;
+        R.col(1) = yB;
+        R.col(2) = zB;
+
+        // ===== 8. 转 quaternion =====
+        Eigen::Quaterniond q(R);
+
+        geometry_msgs::Quaternion q_msg;
+        q_msg.w = q.w();
+        q_msg.x = q.x();
+        q_msg.y = q.y();
+        q_msg.z = q.z();
+
+        // tf2::Quaternion q_tf2;
+        // tf2::fromMsg(q_msg, q_tf2);
+        // tf2::Matrix3x3 m(q_tf2);
+        // double roll, pitch, yaw_rad;
+        // m.getRPY(roll, pitch, yaw_rad);
+        // double yaw_deg = yaw_rad * 180.0 / M_PI;
+        // ROS_INFO("[PerfectMavrosDrone] Calculated orientation - Yaw: %.2f deg (%.2f rad)", yaw_deg, yaw_rad);
+
+        // // 航向角（机体 x 轴在水平面投影）
+        // double heading = atan2(xB.y(), xB.x()) * 180.0 / M_PI;
+        // ROS_INFO("Heading from xB projection: %.2f deg", heading);
+        
+        return q_msg;
     }
 };
 
