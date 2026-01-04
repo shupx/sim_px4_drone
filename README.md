@@ -64,11 +64,11 @@ A perfect ideal drone simulator that instantly follows setpoint commands with ze
 **Quick Start:**
 
 ```bash
-# Single drone (no visualization)
-roslaunch px4_rotor_sim perfect_mavros_drone.launch
+# Single drone (no namespace)
+roslaunch px4_rotor_sim perfect_mavros_drone_no_namespace.launch
 
-# Single drone with RViz visualization
-roslaunch px4_rotor_sim perfect_mavros_drone.launch open_rviz:=true
+# Single drone with namespace
+roslaunch px4_rotor_sim perfect_mavros_drone.launch namespace:=uav1
 
 # Multiple drones (3 by default)
 roslaunch px4_rotor_sim perfect_mavros_drone_multi.launch

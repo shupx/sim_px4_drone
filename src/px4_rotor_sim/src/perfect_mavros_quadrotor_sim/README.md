@@ -25,6 +25,8 @@
 ### 单架无人机
 
 ```bash
+# 不带命名空间
+roslaunch px4_rotor_sim perfect_mavros_drone_no_namespace.launch
 # 带命名空间
 roslaunch px4_rotor_sim perfect_mavros_drone.launch namespace:=uav1
 ```
