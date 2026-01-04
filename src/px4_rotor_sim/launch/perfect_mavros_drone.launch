@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- 
+        Perfect MAVROS Drone Simulator Launch File
+        
+        This launch file starts a perfect ideal drone simulator that:
+        - Subscribes to mavros/setpoint_raw/local
+        - Publishes desired state directly to mavros/local_position/* topics
+        - Publishes mavros/state with armed=true and mode=OFFBOARD
+        
+        Parameters:
+        - namespace: ROS namespace for the drone (default: uav1)
+        - pose_publish_rate: Rate (Hz) for publishing pose messages (default: 30.0)
+        - velocity_publish_rate: Rate (Hz) for publishing velocity messages (default: 30.0)
+        - odom_publish_rate: Rate (Hz) for publishing odometry messages (default: 30.0)
+        - state_publish_rate: Rate (Hz) for publishing state messages (default: 10.0)
+        - init_x: Initial X position (default: 0.0)
+        - init_y: Initial Y position (default: 0.0)
+        - init_z: Initial Z position (default: 0.0)
+        - init_yaw: Initial yaw angle in degrees (default: 0.0)
+        - open_rviz: Open RViz for visualization (default: true)
+    -->
+    
+    <arg name="namespace" default="uav1" />
+    <arg name="pose_publish_rate" default="30.0" />
+    <arg name="velocity_publish_rate" default="30.0" />
+    <arg name="odom_publish_rate" default="30.0" />
+    <arg name="state_publish_rate" default="10.0" />
+    <arg name="init_x" default="0.0" />
+    <arg name="init_y" default="0.0" />
+    <arg name="init_z" default="0.0" />
+    <arg name="init_yaw" default="0.0" />
+    <arg name="open_rviz" default="true" />
+    
+    <group ns="$(arg namespace)">
+        <node pkg="px4_rotor_sim" 
+              type="perfect_mavros_quadrotor_sim_node" 
+              name="perfect_mavros_drone"
+              output="screen">
+            <param name="pose_publish_rate" value="$(arg pose_publish_rate)" />
+            <param name="velocity_publish_rate" value="$(arg velocity_publish_rate)" />
+            <param name="odom_publish_rate" value="$(arg odom_publish_rate)" />
+            <param name="state_publish_rate" value="$(arg state_publish_rate)" />
+            <param name="init_x" value="$(arg init_x)" />
+            <param name="init_y" value="$(arg init_y)" />
+            <param name="init_z" value="$(arg init_z)" />
+            <param name="init_yaw" value="$(arg init_yaw)" />
+        </node>
+    </group>
+    
+    <!-- Include drone visualizer -->
+    <include file="$(find px4_rotor_sim)/launch/drone_visualizer_single.launch">
+        <arg name="namespace" value="$(arg namespace)" />
+        <arg name="open_rviz" value="$(arg open_rviz)" />
+    </include>
+    
+</launch>

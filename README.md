@@ -50,6 +50,33 @@ roslaunch px4_rotor_sim drone_visualizer_multi.launch
 
 ![img](misc/px4rotor-100.gif)
 
+
+## Perfect MAVROS Drone (Ideal Simulation)
+
+A perfect ideal drone simulator that instantly follows setpoint commands with zero delay and error.
+
+**Features:**
+- Subscribes to `mavros/setpoint_raw/local`
+- Directly publishes to `mavros/local_position/pose`, `mavros/local_position/velocity_local`, `mavros/local_position/odom`
+- Always armed and in OFFBOARD mode
+- No dynamics, no delay - perfect for testing high-level control algorithms
+
+**Quick Start:**
+
+```bash
+# Single drone (no visualization)
+roslaunch px4_rotor_sim perfect_mavros_drone.launch
+
+# Single drone with RViz visualization
+roslaunch px4_rotor_sim perfect_mavros_drone.launch open_rviz:=true
+
+# Multiple drones (3 by default)
+roslaunch px4_rotor_sim perfect_mavros_drone_multi.launch
+
+# Custom initial position (m) and yaw (degrees)
+roslaunch px4_rotor_sim perfect_mavros_drone.launch init_x:=1.0 init_y:=2.0 init_z:=1.5 init_yaw:=90.0
+```
+
 ## local point cloud render
 
 #### marsim_render 
@@ -64,7 +91,7 @@ The orignial complete old version of marsim is at https://github.com/hku-mars/MA
 
 #### local_sensing_sim
 
-ROS wrapper of marsim_render and other sensors (TODO).
+ROS wrapper of marsim_render, and other sensors (TODO).
 
 ```bash
 # local point cloud publisher (receiving odom/pose and pub local point clouds and global clouds from a pcd file)

@@ -193,6 +193,15 @@ target_link_libraries(px4_rotor_visualizer_node
    px4_rotor_visualizer
 )
 
+# Perfect MAVROS Quadrotor Simulator Node
+add_executable(perfect_mavros_quadrotor_sim_node
+                  src/perfect_mavros_quadrotor_sim/perfect_mavros_quadrotor_sim_node.cpp)
+
+# link libraries for this node
+target_link_libraries(perfect_mavros_quadrotor_sim_node
+   ${catkin_LIBRARIES}
+)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 

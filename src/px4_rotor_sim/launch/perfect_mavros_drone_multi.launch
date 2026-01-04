@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- 
+        Perfect MAVROS Multi-Drone Simulator Launch File
+        
+        This launch file starts multiple perfect ideal drone simulators.
+        Each drone operates independently in its own namespace.
+        
+        Parameters:
+        - num_drones: Number of drones to simulate (default: 3)
+        - pose_publish_rate: Rate (Hz) for publishing pose messages (default: 30.0)
+        - velocity_publish_rate: Rate (Hz) for publishing velocity messages (default: 30.0)
+        - odom_publish_rate: Rate (Hz) for publishing odometry messages (default: 30.0)
+        - state_publish_rate: Rate (Hz) for publishing state messages (default: 10.0)
+        - init_z: Initial Z position for all drones (default: 0.0)
+    -->
+    
+    <arg name="num_drones" default="3" />
+    <arg name="pose_publish_rate" default="30.0" />
+    <arg name="velocity_publish_rate" default="30.0" />
+    <arg name="odom_publish_rate" default="30.0" />
+    <arg name="state_publish_rate" default="10.0" />
+    <arg name="init_z" default="0.0" />
+    <arg name="open_rviz" default="true"/>
+    
+    <!-- Drone 1 -->
+    <group if="$(eval num_drones >= 1)">
+        <include file="$(find px4_rotor_sim)/launch/perfect_mavros_drone.launch">
+            <arg name="namespace" value="uav1" />
+            <arg name="pose_publish_rate" value="$(arg pose_publish_rate)" />
+            <arg name="velocity_publish_rate" value="$(arg velocity_publish_rate)" />
+            <arg name="odom_publish_rate" value="$(arg odom_publish_rate)" />
+            <arg name="state_publish_rate" value="$(arg state_publish_rate)" />
+            <arg name="init_x" value="0.0" />
+            <arg name="init_y" value="0.0" />
+            <arg name="init_z" value="$(arg init_z)" />
+            <arg name="init_yaw" value="0.0" />
+            <arg name="open_rviz" value="false" />
+        </include>
+    </group>
+    
+    <!-- Drone 2 -->
+    <group if="$(eval num_drones >= 2)">
+        <include file="$(find px4_rotor_sim)/launch/perfect_mavros_drone.launch">
+            <arg name="namespace" value="uav2" />
+            <arg name="pose_publish_rate" value="$(arg pose_publish_rate)" />
+            <arg name="velocity_publish_rate" value="$(arg velocity_publish_rate)" />
+            <arg name="odom_publish_rate" value="$(arg odom_publish_rate)" />
+            <arg name="state_publish_rate" value="$(arg state_publish_rate)" />
+            <arg name="init_x" value="1.0" />
+            <arg name="init_y" value="0.0" />
+            <arg name="init_z" value="$(arg init_z)" />
+            <arg name="init_yaw" value="0.0" />
+            <arg name="open_rviz" value="false" />
+        </include>
+    </group>
+    
+    <!-- Drone 3 -->
+    <group if="$(eval num_drones >= 3)">
+        <include file="$(find px4_rotor_sim)/launch/perfect_mavros_drone.launch">
+            <arg name="namespace" value="uav3" />
+            <arg name="pose_publish_rate" value="$(arg pose_publish_rate)" />
+            <arg name="velocity_publish_rate" value="$(arg velocity_publish_rate)" />
+            <arg name="odom_publish_rate" value="$(arg odom_publish_rate)" />
+            <arg name="state_publish_rate" value="$(arg state_publish_rate)" />
+            <arg name="init_x" value="0.0" />
+            <arg name="init_y" value="1.0" />
+            <arg name="init_z" value="$(arg init_z)" />
+            <arg name="init_yaw" value="0.0" />
+            <arg name="open_rviz" value="false" />
+        </include>
+    </group>
+    
+    <!-- Drone 4 -->
+    <group if="$(eval num_drones >= 4)">
+        <include file="$(find px4_rotor_sim)/launch/perfect_mavros_drone.launch">
+            <arg name="namespace" value="uav4" />
+            <arg name="pose_publish_rate" value="$(arg pose_publish_rate)" />
+            <arg name="velocity_publish_rate" value="$(arg velocity_publish_rate)" />
+            <arg name="odom_publish_rate" value="$(arg odom_publish_rate)" />
+            <arg name="state_publish_rate" value="$(arg state_publish_rate)" />
+            <arg name="init_x" value="1.0" />
+            <arg name="init_y" value="1.0" />
+            <arg name="init_z" value="$(arg init_z)" />
+            <arg name="init_yaw" value="0.0" />
+            <arg name="open_rviz" value="false" />
+        </include>
+    </group>
+    
+    <!-- Drone 5 -->
+    <group if="$(eval num_drones >= 5)">
+        <include file="$(find px4_rotor_sim)/launch/perfect_mavros_drone.launch">
+            <arg name="namespace" value="uav5" />
+            <arg name="pose_publish_rate" value="$(arg pose_publish_rate)" />
+            <arg name="velocity_publish_rate" value="$(arg velocity_publish_rate)" />
+            <arg name="odom_publish_rate" value="$(arg odom_publish_rate)" />
+            <arg name="state_publish_rate" value="$(arg state_publish_rate)" />
+            <arg name="init_x" value="-1.0" />
+            <arg name="init_y" value="0.0" />
+            <arg name="init_z" value="$(arg init_z)" />
+            <arg name="init_yaw" value="0.0" />
+            <arg name="open_rviz" value="false" />
+        </include>
+    </group>
+
+    <group if="$(arg open_rviz)">
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find px4_rotor_sim)/launch/multi_px4_rotor.rviz" required="false" />
+    </group>
+    
+</launch>
