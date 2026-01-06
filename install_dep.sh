@@ -10,4 +10,6 @@ pip3 install PyQt5
 # marsim_render
 
 # local_sensing_sim
+# pip3 install open3d numpy pyyaml # for map_generator.py (optional)
+
 

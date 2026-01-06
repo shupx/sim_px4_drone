@@ -1,6 +1,22 @@
 
 # sim_px4_drone
 
+Install dependencies first:
+
+```bash
+./install_dep.sh
+``` 
+
+Then build this project with catkin_make or catkin build:
+
+```bash
+cd sim_px4_drone/
+catkin_make
+
+# source devel/setup.bash everytime you open a new terminal
+source devel/setup.bash
+``` 
+
 ## simulated mavros + trimmed PX4 controller
 
 #### px4_rotor_sim, sss_sim_env
