@@ -23,8 +23,14 @@ pip3 install open3d numpy pyyaml
 ### 方法1：使用配置文件
 
 ```bash
-cd src/local_sensing_sim/src
-python3 map_generator.py --config ../config/map_generator_config.yaml
+cd src/local_sensing_sim/src/map_generator
+python3 map_generator.py --config ./map_generator_config.yaml
+```
+
+默认使用`map_generator_config.yaml`文件：
+
+```bash
+python3 map_generator.py
 ```
 
 ### 方法2：使用命令行参数
@@ -43,7 +49,7 @@ python3 map_generator.py \
 ### 方法3：生成并可视化
 
 ```bash
-python3 map_generator.py --config ../config/map_generator_config.yaml --visualize
+python3 map_generator.py --config ./map_generator_config.yaml --visualize
 ```
 
 ## 配置参数说明

@@ -3,6 +3,9 @@
 PCD File Visualizer
 Simple tool to visualize point cloud files in PCD format
 
+@author: Peixuan Shu
+@date: Jan 2026
+
 Usage Examples:
 --------------------
 # 交互式模式（自动列出文件让你选择）

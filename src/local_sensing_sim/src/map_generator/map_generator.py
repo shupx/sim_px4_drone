@@ -56,54 +56,98 @@ class MapGenerator:
         self.add_ground = config.get('add_ground', True)
         self.ground_points = config.get('ground_points', 5000)
         
+        # Minimum distance between obstacles
+        self.min_obstacle_distance = config.get('min_obstacle_distance', 1.0)
+        self.max_placement_attempts = config.get('max_placement_attempts', 100)
+        
         self.scene = o3d.geometry.PointCloud()
+        self.obstacles = []  # List of (center, radius) tuples for collision detection
+    
+    def check_collision(self, center, radius):
+        """Check if a new obstacle collides with existing obstacles"""
+        for obs_center, obs_radius in self.obstacles:
+            # Calculate distance between centers (only in x-y plane for better distribution)
+            distance = np.sqrt((center[0] - obs_center[0])**2 + (center[1] - obs_center[1])**2)
+            # Check if distance is less than sum of radii plus minimum distance
+            min_required_distance = radius + obs_radius + self.min_obstacle_distance
+            if distance < min_required_distance:
+                return True  # Collision detected
+        return False  # No collision
     
     def generate_cylinder(self):
-        """Generate a random cylinder obstacle"""
+        """Generate a random cylinder obstacle with collision avoidance"""
         radius = np.random.uniform(*self.cyl_radius_range)
         height = np.random.uniform(*self.cyl_height_range)
         
-        # Create cylinder
-        cyl = o3d.geometry.TriangleMesh.create_cylinder(radius, height)
+        # Try to find a valid position
+        for attempt in range(self.max_placement_attempts):
+            # Random position within field
+            x = np.random.uniform(-self.field_x/2, self.field_x/2)
+            y = np.random.uniform(-self.field_y/2, self.field_y/2)
+            z = height / 2  # Place cylinder on ground (z=0), center at height/2
+            
+            center = np.array([x, y, z])
+            
+            # Check collision with existing obstacles
+            if not self.check_collision(center, radius):
+                # Create cylinder
+                cyl = o3d.geometry.TriangleMesh.create_cylinder(radius, height)
+                cyl.translate([x, y, z])
+                
+                # Sample points from the mesh
+                pcd_cyl = cyl.sample_points_uniformly(self.cyl_points)
+                
+                # Add to obstacles list for future collision checks
+                self.obstacles.append((center, radius))
+                
+                return pcd_cyl
         
-        # Random position within field
-        x = np.random.uniform(-self.field_x/2, self.field_x/2)
-        y = np.random.uniform(-self.field_y/2, self.field_y/2)
-        z = np.random.uniform(height/2, self.field_z - height/2)  # Ensure cylinder fits in field
-        
-        cyl.translate([x, y, z])
-        
-        # Sample points from the mesh
-        pcd_cyl = cyl.sample_points_uniformly(self.cyl_points)
-        
-        return pcd_cyl
+        # If failed to place after max attempts, return None
+        print(f"Warning: Failed to place cylinder after {self.max_placement_attempts} attempts")
+        return None
     
     def generate_torus(self):
-        """Generate a random torus (ring) obstacle"""
+        """Generate a random torus (ring) obstacle with collision avoidance"""
         major_radius = np.random.uniform(*self.torus_major_radius_range)
         minor_radius = np.random.uniform(*self.torus_minor_radius_range)
         
-        # Create torus
-        torus = o3d.geometry.TriangleMesh.create_torus(major_radius, minor_radius)
+        # Use major_radius as equivalent radius for collision detection
+        equivalent_radius = major_radius
         
-        # Random position within field
-        x = np.random.uniform(-self.field_x/2 + major_radius, self.field_x/2 - major_radius)
-        y = np.random.uniform(-self.field_y/2 + major_radius, self.field_y/2 - major_radius)
-        z = np.random.uniform(major_radius, self.field_z - major_radius)
+        # Try to find a valid position
+        for attempt in range(self.max_placement_attempts):
+            # Random position within field
+            x = np.random.uniform(-self.field_x/2 + major_radius, self.field_x/2 - major_radius)
+            y = np.random.uniform(-self.field_y/2 + major_radius, self.field_y/2 - major_radius)
+            z = np.random.uniform(major_radius, self.field_z - major_radius)
+            
+            center = np.array([x, y, z])
+            
+            # Check collision with existing obstacles
+            if not self.check_collision(center, equivalent_radius):
+                # Create torus
+                torus = o3d.geometry.TriangleMesh.create_torus(major_radius, minor_radius)
+                
+                # Random rotation
+                R = torus.get_rotation_matrix_from_xyz((
+                    np.random.uniform(0, 2*np.pi),
+                    np.random.uniform(0, 2*np.pi),
+                    np.random.uniform(0, 2*np.pi)
+                ))
+                torus.rotate(R, center=(0, 0, 0))
+                torus.translate([x, y, z])
+                
+                # Sample points from the mesh
+                pcd_torus = torus.sample_points_uniformly(self.torus_points)
+                
+                # Add to obstacles list for future collision checks
+                self.obstacles.append((center, equivalent_radius))
+                
+                return pcd_torus
         
-        # Random rotation
-        R = torus.get_rotation_matrix_from_xyz((
-            np.random.uniform(0, 2*np.pi),
-            np.random.uniform(0, 2*np.pi),
-            np.random.uniform(0, 2*np.pi)
-        ))
-        torus.rotate(R, center=(0, 0, 0))
-        torus.translate([x, y, z])
-        
-        # Sample points from the mesh
-        pcd_torus = torus.sample_points_uniformly(self.torus_points)
-        
-        return pcd_torus
+        # If failed to place after max attempts, return None
+        print(f"Warning: Failed to place torus after {self.max_placement_attempts} attempts")
+        return None
     
     def generate_ground(self):
         """Generate ground plane"""
@@ -165,18 +209,30 @@ class MapGenerator:
         """Generate the complete map with all obstacles"""
         print(f"Generating map with seed: {self.seed}")
         print(f"Field dimensions: {self.field_x} x {self.field_y} x {self.field_z}")
+        print(f"Minimum obstacle distance: {self.min_obstacle_distance} m")
+        
+        # Clear obstacles list
+        self.obstacles = []
         
         # Generate cylinders
         print(f"Generating {self.num_cylinders} cylinders...")
+        cylinders_placed = 0
         for i in range(self.num_cylinders):
             pcd_cyl = self.generate_cylinder()
-            self.scene += pcd_cyl
+            if pcd_cyl is not None:
+                self.scene += pcd_cyl
+                cylinders_placed += 1
+        print(f"Successfully placed {cylinders_placed}/{self.num_cylinders} cylinders")
         
         # Generate torus obstacles
         print(f"Generating {self.num_torus} torus obstacles...")
+        torus_placed = 0
         for i in range(self.num_torus):
             pcd_torus = self.generate_torus()
-            self.scene += pcd_torus
+            if pcd_torus is not None:
+                self.scene += pcd_torus
+                torus_placed += 1
+        print(f"Successfully placed {torus_placed}/{self.num_torus} torus obstacles")
         
         # Add ground if enabled
         if self.add_ground:
@@ -203,11 +259,18 @@ class MapGenerator:
         if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir)
         
+        # Handle empty point cloud case
+        if not self.scene.has_points():
+            print("Warning: Point cloud is empty. Creating minimal point cloud...")
+            # Add a single point at origin to create a valid (nearly empty) PCD file
+            self.scene.points = o3d.utility.Vector3dVector(np.array([[0.0, 0.0, -2.0]]))
+        
         # Save point cloud
         success = o3d.io.write_point_cloud(output_path, self.scene)
         
         if success:
-            print(f"Map saved successfully to: {output_path}")
+            abs_path = os.path.abspath(output_path)
+            print(f"Map saved successfully to: {abs_path}")
         else:
             print(f"Failed to save map to: {output_path}")
         
@@ -244,10 +307,24 @@ def main():
     args = parser.parse_args()
     
     # Load configuration
-    if args.config and os.path.exists(args.config):
-        config = load_config(args.config)
+    config_file = None
+    
+    if args.config:
+        # Use user-specified config file
+        config_file = args.config
     else:
-        # Default configuration
+        # Try to load default config file from script directory
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        default_config_file = os.path.join(script_dir, 'map_generator_config.yaml')
+        if os.path.exists(default_config_file):
+            config_file = default_config_file
+            print(f"Using default config file: {config_file}")
+    
+    if config_file and os.path.exists(config_file):
+        config = load_config(config_file)
+    else:
+        # Default configuration (fallback if no config file found)
+        print("No config file found, using default configuration")
         config = {
             'seed': 42,
             'field_x': 20.0,
@@ -265,6 +342,8 @@ def main():
             'boundary_points': 10000,
             'add_ground': True,
             'ground_points': 5000,
+            'min_obstacle_distance': 1.0,
+            'max_placement_attempts': 100,
             'output_file': 'random_map.pcd'
         }
     
@@ -292,10 +371,23 @@ def main():
     
     # Save map
     generator.save_map()
+
+    print("Using built-in visualization...")
+    generator.visualize()
     
-    # Visualize if requested
+    # Visualize pcd if requested
     if args.visualize:
-        generator.visualize()
+        import subprocess
+        output_file = generator.output_file
+        output_dir = os.path.dirname(os.path.abspath(output_file))
+        output_filename = os.path.basename(output_file)
+        vis_script = os.path.join(output_dir, 'vis_pcd.py')
+        
+        if os.path.exists(vis_script):
+            print(f"\nLaunching visualization with {vis_script}...")
+            subprocess.run(['python3', vis_script, output_filename], cwd=output_dir)
+        else:
+            print(f"\nWarning: vis_pcd.py not found at {vis_script}")
 
 
 if __name__ == '__main__':

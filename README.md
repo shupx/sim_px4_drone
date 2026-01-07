@@ -5,7 +5,7 @@ Install dependencies first:
 
 ```bash
 ./install_dep.sh
-``` 
+```
 
 Then build this project with catkin_make or catkin build:
 
@@ -15,7 +15,7 @@ catkin_make
 
 # source devel/setup.bash everytime you open a new terminal
 source devel/setup.bash
-``` 
+```
 
 ## simulated mavros + trimmed PX4 controller
 
@@ -102,8 +102,6 @@ It is a OpenGL render library (ROS independent) from MARSlab of HKU. It generate
 The `marsim_render` folder is part of the super planner from https://github.com/hku-mars/SUPER/tree/master/mars_uav_sim (with ROS1 and ROS2) but with improvements by Peixuan Shu.
 
 The orignial complete old version of marsim is at https://github.com/hku-mars/MARSIM
-
-> In marsim, the y=0 plane is a virtual floor even if there is no floor point clouds in the pcd file.
 
 #### local_sensing_sim
 
