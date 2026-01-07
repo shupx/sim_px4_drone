@@ -142,6 +142,10 @@ private:
         );
 
         last_pose_time_ = msg->header.stamp;
+
+        if (pose_received_ == false) {
+            ROS_INFO("Received first pose message.");
+        }
         pose_received_ = true;
 
         // Publish global point cloud if there are subscribers
@@ -163,6 +167,10 @@ private:
         );
 
         last_pose_time_ = msg->header.stamp;
+
+        if (pose_received_ == false) {
+            ROS_INFO("Received first odom message.");
+        }
         pose_received_ = true;
 
         // Publish global point cloud if there are subscribers

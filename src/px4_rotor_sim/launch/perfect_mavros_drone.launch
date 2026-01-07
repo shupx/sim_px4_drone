@@ -31,6 +31,10 @@
     <arg name="init_z" default="0.0" />
     <arg name="init_yaw" default="0.0" />
     <arg name="open_rviz" default="true" />
+
+    <arg name="visualize_max_freq" default="20"/> <!-- (Hz) Maximum  Maximum base_link tf publishing rate  -->
+    <arg name="enable_history_path" default="true"/> <!-- Enable visualizing history path  -->
+    <arg name="visualize_path_time" default="30"/> <!-- (s) displaying history path time -->
     
     <group ns="$(arg namespace)">
         <node pkg="px4_rotor_sim" 
@@ -52,6 +56,9 @@
     <include file="$(find px4_rotor_sim)/launch/drone_visualizer_single.launch">
         <arg name="namespace" value="$(arg namespace)" />
         <arg name="open_rviz" value="$(arg open_rviz)" />
+        <arg name="visualize_max_freq" value="$(arg visualize_max_freq)"/> <!-- (Hz) Maximum  Maximum base_link tf publishing rate  -->
+        <arg name="enable_history_path" value="$(arg enable_history_path)"/> <!-- Enable visualizing history path  -->
+        <arg name="visualize_path_time" value="$(arg visualize_path_time)"/> <!-- (s) displaying history path time -->
     </include>
     
 </launch>
