@@ -26,6 +26,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <visualization_msgs/Marker.h>
 #include <mavros_msgs/CommandAck.h>
+#include <deque>
 
 #include <geo/geo.h> // for px4 gps->NED utils
 
@@ -119,6 +120,7 @@ private:
 
     float joint_pos_[4] = {0.0, 0.5, 2.6, 1.4};
     std::vector<geometry_msgs::PoseStamped> TrajPoseHistory_vector_;
+    std::deque<geometry_msgs::PoseStamped> TrajPoseHistory_deque_;
 
 
     void cb_mavros_state(const mavros_msgs::State::ConstPtr& msg);

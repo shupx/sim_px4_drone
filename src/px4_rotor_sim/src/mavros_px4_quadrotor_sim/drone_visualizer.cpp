@@ -154,20 +154,20 @@ void Visualizer::PublishPath()
             float history_path_update_freq = 5.0; // 5Hz fixed
             if (time_now - last_time_PublishPath_ > 1.0 / history_path_update_freq)
             {
-                geometry_msgs::PoseStamped TrajPose_;
-                TrajPose_.header.stamp = ros::Time::now();
-                TrajPose_.header.frame_id = tf_frame_;
-                TrajPose_.pose.position.x = pos_x_;
-                TrajPose_.pose.position.y = pos_y_;
-                TrajPose_.pose.position.z = pos_z_;          
-                TrajPose_.pose.orientation = quat_;
+                geometry_msgs::PoseStamped TrajPose;
+                TrajPose.header.stamp = ros::Time::now();
+                TrajPose.header.frame_id = tf_frame_;
+                TrajPose.pose.position.x = pos_x_;
+                TrajPose.pose.position.y = pos_y_;
+                TrajPose.pose.position.z = pos_z_;          
+                TrajPose.pose.orientation = quat_;
 
-                /* heavily time consuming */
-                TrajPoseHistory_vector_.insert(TrajPoseHistory_vector_.begin(), TrajPose_);
-                if (TrajPoseHistory_vector_.size() > history_path_time_ * history_path_update_freq)
-                {
-                    TrajPoseHistory_vector_.pop_back();
-                }
+                // /* heavily time consuming */
+                // TrajPoseHistory_vector_.insert(TrajPoseHistory_vector_.begin(), TrajPose); // O(N) complexity
+                // if (TrajPoseHistory_vector_.size() > history_path_time_ * history_path_update_freq)
+                // {
+                //     TrajPoseHistory_vector_.pop_back();  // O(1) complexity
+                // }
 
                 // std::vector<geometry_msgs::PoseStamped> old_vector{TrajPoseHistory_vector_};
                 // TrajPoseHistory_vector_[0] = TrajPose_;
@@ -175,11 +175,20 @@ void Visualizer::PublishPath()
                 // {
                 //     TrajPoseHistory_vector_[i] = old_vector[i-1];
                 // }
+
+                // use deque for better performance (2026-01-08, Peixuan Shu)
+                TrajPoseHistory_deque_.push_back(TrajPose); // O(1) complexity
+                while (TrajPoseHistory_deque_.size() > history_path_time_ * history_path_update_freq)
+                {
+                    TrajPoseHistory_deque_.pop_front(); // O(1) complexity
+                }
                 
                 nav_msgs::Path::Ptr path_msg(new nav_msgs::Path);
                 path_msg->header.stamp = ros::Time::now();
                 path_msg->header.frame_id = tf_frame_;
-                path_msg->poses = TrajPoseHistory_vector_;
+                // path_msg->poses = TrajPoseHistory_vector_;
+                path_msg->poses.assign(TrajPoseHistory_deque_.begin(), 
+                                        TrajPoseHistory_deque_.end());
                 path_pub_.publish(path_msg); /* heavily time consuming */
 
                 last_time_PublishPath_ = time_now;
