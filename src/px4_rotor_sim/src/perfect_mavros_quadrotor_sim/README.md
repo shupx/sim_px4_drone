@@ -26,7 +26,7 @@
 
 ```bash
 # 不带命名空间
-roslaunch px4_rotor_sim perfect_mavros_drone_no_namespace.launch
+roslaunch px4_rotor_sim perfect_mavros_drone_no_prefix.launch
 # 带命名空间
 roslaunch px4_rotor_sim perfect_mavros_drone.launch namespace:=uav1
 ```

@@ -53,6 +53,6 @@
         <arg name="open_rviz" value="false"/>
     </include>
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find px4_rotor_sim)/launch/multi_px4_rotor.rviz" required="true" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find px4_rotor_sim)/launch/rviz/multi_px4_rotor.rviz" required="true" />
 
 </launch>

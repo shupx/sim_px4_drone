@@ -20,7 +20,7 @@
     <arg name="velocity_publish_rate" default="30.0" />
     <arg name="odom_publish_rate" default="30.0" />
     <arg name="state_publish_rate" default="10.0" />
-    <arg name="init_z" default="0.0" />
+    <arg name="init_z" default="1.0" />
     <arg name="open_rviz" default="true"/>
     
     <!-- Drone 1 -->
@@ -104,7 +104,7 @@
     </group>
 
     <group if="$(arg open_rviz)">
-        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find px4_rotor_sim)/launch/multi_px4_rotor.rviz" required="false" />
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find px4_rotor_sim)/launch/rviz/multi_px4_rotor.rviz" required="false" />
     </group>
     
 </launch>

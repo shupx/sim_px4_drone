@@ -65,8 +65,12 @@ private:
     double init_z_;
     double init_yaw_;
     
+    // Time tracking for integration
+    ros::Time last_callback_time_;
+    bool first_callback_;
+    
 public:
-    PerfectMavrosDrone() : nh_private_("~")
+    PerfectMavrosDrone() : nh_private_("~"), first_callback_(true)
     {
         // Load parameters
         nh_private_.param<double>("pose_publish_rate", pose_publish_rate_, 30.0);
@@ -173,13 +177,29 @@ public:
     {
         ros::Time now = ros::Time::now();
         
+        // Calculate dt based on actual time
+        double dt = 0.0;
+        if (!first_callback_)
+        {
+            dt = (now - last_callback_time_).toSec();
+        }
+        else
+        {
+            first_callback_ = false;
+        }
+        last_callback_time_ = now;
+        
         // Update pose based on setpoint
         current_pose_.header.stamp = now;
         
-        // Position setpoint
+        // Position setpoint - integrate velocity if position not provided
         if (msg->type_mask & mavros_msgs::PositionTarget::IGNORE_PX)
         {
-            // Position X ignored, keep current
+            // Position X ignored, integrate velocity
+            if (!(msg->type_mask & mavros_msgs::PositionTarget::IGNORE_VX) && dt > 0.0)
+            {
+                current_pose_.pose.position.x += msg->velocity.x * dt;
+            }
         }
         else
         {
@@ -188,7 +208,11 @@ public:
         
         if (msg->type_mask & mavros_msgs::PositionTarget::IGNORE_PY)
         {
-            // Position Y ignored, keep current
+            // Position Y ignored, integrate velocity
+            if (!(msg->type_mask & mavros_msgs::PositionTarget::IGNORE_VY) && dt > 0.0)
+            {
+                current_pose_.pose.position.y += msg->velocity.y * dt;
+            }
         }
         else
         {
@@ -197,7 +221,11 @@ public:
         
         if (msg->type_mask & mavros_msgs::PositionTarget::IGNORE_PZ)
         {
-            // Position Z ignored, keep current
+            // Position Z ignored, integrate velocity
+            if (!(msg->type_mask & mavros_msgs::PositionTarget::IGNORE_VZ) && dt > 0.0)
+            {
+                current_pose_.pose.position.z += msg->velocity.z * dt;
+            }
         }
         else
         {
@@ -234,17 +262,23 @@ public:
             current_velocity_.twist.linear.z = msg->velocity.z;
         }
         
-        // Attitude setpoint (yaw)
+        // Attitude setpoint (yaw) - integrate yaw rate if yaw not provided
         double yaw = 0.0;
         
         if (msg->type_mask & mavros_msgs::PositionTarget::IGNORE_YAW)
         {
-            // Yaw ignored, extract current yaw
+            // Yaw ignored, extract current yaw and integrate yaw rate if provided
             tf2::Quaternion q_current;
             tf2::fromMsg(current_pose_.pose.orientation, q_current);
             tf2::Matrix3x3 m(q_current);
             double roll, pitch;
             m.getRPY(roll, pitch, yaw);
+            
+            // Integrate yaw rate if provided
+            if (!(msg->type_mask & mavros_msgs::PositionTarget::IGNORE_YAW_RATE) && dt > 0.0)
+            {
+                yaw += msg->yaw_rate * dt;
+            }
         }
         else
         {
@@ -329,7 +363,7 @@ private:
      */
     geometry_msgs::Quaternion calculateOrientationFromAcceleration(double ax, double ay, double az, double yaw)
     {
-        // ======= follow PX4 yaw definition and calculation method (body_x在水平面的投影与yaw方向一致) =========
+        // ======= follow PX4 yaw definition and calculation method (body_x在水平面的投影与yaw方向一致， ENU and FLU frame) =========
 
         // std::cout << "[PerfectMavrosDrone] Calculating orientation from acceleration: "
         //           << "ax=" << ax << ", ay=" << ay << ", az=" << az << ", yaw=" << yaw * 180.0 / M_PI << " deg" << std::endl;

@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Local Pointcloud and px4 drone Simulator Node -->
+    
+    <arg name="use_perfect_drone" default="true"/>
+    <arg name="rviz_enable" default="true"/>
+    <arg name="sensing_enable" default="true"/>
+
+    <arg name="init_x_metre" default="1.0"/>
+    <arg name="init_y_metre" default="0.0"/>
+    <arg name="init_z_metre" default="1.0"/>
+    <arg name="init_yaw_deg" default="0.0"/>
+
+    <group if="$(arg sensing_enable)">
+        <node pkg="local_sensing_sim" type="local_pointcloud_sim_node" name="local_pointcloud_sim" output="screen">
+            <param name="config_path" value="$(find local_sensing_sim)/config/local_pointcloud_sim.yaml" />
+        </node>
+    </group>
+
+    <group if="$(arg use_perfect_drone)">
+        <include file="$(find px4_rotor_sim)/launch/perfect_mavros_drone_no_prefix.launch">
+            <arg name="init_x" value="$(arg init_x_metre)"/>
+            <arg name="init_y" value="$(arg init_y_metre)"/>
+            <arg name="init_z" value="$(arg init_z_metre)"/>
+            <arg name="init_yaw" value="$(arg init_yaw_deg)"/>
+            <arg name="open_rviz" value="false"/>
+            <arg name="visualize_max_freq" value="20"/> <!-- (Hz) Maximum  Maximum base_link tf publishing rate  -->
+            <arg name="enable_history_path" value="true"/> <!-- Enable visualizing history path  -->
+            <arg name="visualize_path_time" value="30"/> <!-- (s) displaying history path time -->
+        </include>
+    </group>
+    
+    <group unless="$(arg use_perfect_drone)">
+        <include file="$(find px4_rotor_sim)/launch/px4_rotor_sim_single_no_prefix.launch">
+            <arg name="init_x_East_metre" value="$(arg init_x_metre)"/>
+            <arg name="init_y_North_metre" value="$(arg init_y_metre)"/>
+            <arg name="init_z_Up_metre" value="$(arg init_z_metre)"/>
+            <arg name="init_roll_deg" value="0.0"/>
+            <arg name="init_pitch_deg" value="0.0"/>
+            <arg name="init_yaw_deg" value="$(arg init_yaw_deg)"/>
+            <arg name="use_sim_time" value="false"/>
+            <arg name="local_pos_source" value="0"/>
+            <arg name="open_rviz" value="false"/>
+            <arg name="px4_rotor_sim_param_config_yaml" default="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+        </include>
+    </group>
+
+    <group if="$(arg rviz_enable)">
+        <node pkg="rviz" type="rviz" name="viz_pc_sim" args="-d $(find local_sensing_sim)/launch/rviz/px4_pc_sim.rviz" required="false"></node>
+    </group>
+
+</launch>
+

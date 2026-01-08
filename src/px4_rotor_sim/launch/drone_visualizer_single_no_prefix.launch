@@ -51,7 +51,7 @@
     </node>
     
     <group if="$(arg open_rviz)">
-        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find px4_rotor_sim)/launch/single_px4_rotor.rviz" required="true" />
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find px4_rotor_sim)/launch/rviz/single_px4_rotor_no_prefix.rviz" required="true" />
     </group>
 
 

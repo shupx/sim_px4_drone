@@ -43,7 +43,7 @@
     </include>
     
     <group if="$(arg open_rviz)">
-        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find px4_rotor_sim)/launch/test_multi_px4_rotor.rviz" required="false" />
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find px4_rotor_sim)/launch/rviz/test_multi_px4_rotor.rviz" required="false" />
     </group>
 
 </launch>

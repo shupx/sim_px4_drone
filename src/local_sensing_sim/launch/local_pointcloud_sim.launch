@@ -19,7 +19,7 @@
     </group> -->
 
     <group if="$(arg rviz_enable)">
-        <node pkg="rviz" type="rviz" name="viz_pc_sim" args="-d $(find local_sensing_sim)/launch/pc_sim.rviz"></node>
+        <node pkg="rviz" type="rviz" name="viz_pc_sim" args="-d $(find local_sensing_sim)/launch/rviz/pc_sim.rviz"></node>
     </group>
 
 </launch>

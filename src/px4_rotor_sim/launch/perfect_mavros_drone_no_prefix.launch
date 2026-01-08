@@ -20,15 +20,20 @@
         - open_rviz: Open RViz for visualization (default: true)
     -->
     
+    <arg name="init_x" default="0.0" />
+    <arg name="init_y" default="0.0" />
+    <arg name="init_z" default="1.0" />
+    <arg name="init_yaw" default="0.0" />
+    <arg name="open_rviz" default="true" />
+
     <arg name="pose_publish_rate" default="30.0" />
     <arg name="velocity_publish_rate" default="30.0" />
     <arg name="odom_publish_rate" default="30.0" />
     <arg name="state_publish_rate" default="10.0" />
-    <arg name="init_x" default="0.0" />
-    <arg name="init_y" default="0.0" />
-    <arg name="init_z" default="0.0" />
-    <arg name="init_yaw" default="0.0" />
-    <arg name="open_rviz" default="true" />
+
+    <arg name="visualize_max_freq" default="20"/> <!-- (Hz) Maximum  Maximum base_link tf publishing rate  -->
+    <arg name="enable_history_path" default="true"/> <!-- Enable visualizing history path  -->
+    <arg name="visualize_path_time" default="30"/> <!-- (s) displaying history path time -->
     
     <node pkg="px4_rotor_sim" 
             type="perfect_mavros_quadrotor_sim_node" 
@@ -45,9 +50,12 @@
     </node>
 
     <!-- Include drone visualizer -->
-    <include file="$(find px4_rotor_sim)/launch/drone_visualizer_single_no_namespace.launch">
+    <include file="$(find px4_rotor_sim)/launch/drone_visualizer_single_no_prefix.launch">
         <arg name="namespace" value="uav1" />
         <arg name="open_rviz" value="$(arg open_rviz)" />
+        <arg name="visualize_max_freq" value="$(arg visualize_max_freq)"/> <!-- (Hz) Maximum  Maximum base_link tf publishing rate  -->
+        <arg name="enable_history_path" value="$(arg enable_history_path)"/> <!-- Enable visualizing history path  -->
+        <arg name="visualize_path_time" value="$(arg visualize_path_time)"/> <!-- (s) displaying history path time -->
     </include>
     
 </launch>
