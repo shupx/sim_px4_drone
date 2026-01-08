@@ -2,7 +2,7 @@
 <launch>
     <!-- Different arguments for each vehicle -->
 
-    <arg name="namespace" default="uav1"/>
+    <arg name="namespace" default="uav"/>
     <arg name="init_x_East_metre" default="0.0"/>
     <arg name="init_y_North_metre" default="0.0"/>
     <arg name="init_z_Up_metre" default="0.0"/>

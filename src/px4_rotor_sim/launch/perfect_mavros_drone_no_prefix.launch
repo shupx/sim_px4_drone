@@ -51,7 +51,6 @@
 
     <!-- Include drone visualizer -->
     <include file="$(find px4_rotor_sim)/launch/drone_visualizer_single_no_prefix.launch">
-        <arg name="namespace" value="uav1" />
         <arg name="open_rviz" value="$(arg open_rviz)" />
         <arg name="visualize_max_freq" value="$(arg visualize_max_freq)"/> <!-- (Hz) Maximum  Maximum base_link tf publishing rate  -->
         <arg name="enable_history_path" value="$(arg enable_history_path)"/> <!-- Enable visualizing history path  -->

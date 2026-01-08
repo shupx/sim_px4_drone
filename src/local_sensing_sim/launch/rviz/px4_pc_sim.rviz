@@ -248,7 +248,7 @@ Visualization Manager:
                   Value: true
               Name: RobotModel
               Robot Description: robot_description
-              TF Prefix: uav1
+              TF Prefix: uav
               Update Interval: 0
               Value: true
               Visual Enabled: true
@@ -319,4 +319,4 @@ Window Geometry:
     collapsed: true
   Width: 1388
   X: 670
-  Y: 330
+  Y: 293

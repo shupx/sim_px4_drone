@@ -2,7 +2,7 @@
 <!-- For visualization in real experiments -->
 
 <launch>
-    <arg name="namespace" default="uav1"/>
+    <arg name="namespace" default="uav"/>
     <arg name="open_rviz" default="true"/>
 
     <arg name="visualize_max_freq" default="20"/> <!-- (Hz) Maximum  Maximum base_link tf publishing rate  -->
