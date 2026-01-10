@@ -7,15 +7,19 @@
 这个节点实现了一个理想的无人机模拟器，具有以下特性：
 
 1. **订阅话题**：
-   - `mavros/setpoint_raw/local` (mavros_msgs/PositionTarget)
+   - `mavros/setpoint_raw/local` (mavros_msgs/PositionTarget) - 仅在OFFBOARD模式且armed时响应
 
 2. **发布话题**：
    - `mavros/local_position/pose` (geometry_msgs/PoseStamped) - 位置和姿态
    - `mavros/local_position/velocity_local` (geometry_msgs/TwistStamped) - 速度
    - `mavros/local_position/odom` (nav_msgs/Odometry) - 里程计
-   - `mavros/state` (mavros_msgs/State) - 状态（armed=true, mode=OFFBOARD）
+   - `mavros/state` (mavros_msgs/State) - 状态信息（初始是armed=true, mode=OFFBOARD）
 
-3. **完美响应**：
+3. **提供服务**：
+   - `mavros/set_mode` (mavros_msgs/SetMode) - 切换飞行模式（支持PX4标准模式）
+   - `mavros/cmd/arming` (mavros_msgs/CommandBool) - 上锁/解锁控制
+
+4. **完美响应**：
    - 无延迟：接收到setpoint后立即发布到状态话题
    - 无误差：期望值直接作为实际值发布
    - 无动力学：不模拟任何物理动力学，适合测试规划算法
@@ -40,6 +44,46 @@ roslaunch px4_rotor_sim perfect_mavros_drone_multi.launch
 # 启动5架无人机
 roslaunch px4_rotor_sim perfect_mavros_drone_multi.launch num_drones:=5
 ```
+
+## 服务调用
+
+### 切换飞行模式
+
+```bash
+# 切换到OFFBOARD模式
+rosservice call /uav1/mavros/set_mode "custom_mode: 'OFFBOARD'"
+
+# 切换到其他模式
+rosservice call /uav1/mavros/set_mode "custom_mode: 'POSCTL'"
+```
+
+支持的PX4飞行模式： （除了OFFBOARD其他都不实际工作）
+- MANUAL
+- ACRO
+- ALTCTL
+- POSCTL
+- OFFBOARD
+- STABILIZED
+- RATTITUDE
+- MISSION
+- AUTO.LOITER
+- AUTO.RTL
+- AUTO.LAND
+- AUTO.TAKEOFF
+- AUTO.FOLLOW_TARGET
+- AUTO.PRECLAND
+
+### 上锁/解锁
+
+```bash
+# 上锁（ARM）
+rosservice call /uav1/mavros/cmd/arming "value: true"
+
+# 解锁（DISARM）
+rosservice call /uav1/mavros/cmd/arming "value: false"
+```
+
+**注意**：只有在OFFBOARD模式且已上锁（armed）的情况下，无人机才会响应 `setpoint_raw/local` 指令。
 
 ## 示例：发送控制指令
 
@@ -120,8 +164,10 @@ rostopic echo /uav1/mavros/local_position/odom
 
 - 此模拟器不考虑任何物理约束（加速度、速度限制等）
 - 不适合用于测试需要真实动力学响应的场景
-- 状态始终为armed=true和mode=OFFBOARD
+- 初始状态为armed=true和mode=OFFBOARD，可通过service修改
+- 只有在OFFBOARD模式且armed时才响应setpoint指令
 - 所有setpoint字段都会被立即应用（除非type_mask设置为忽略）
+- 支持通过service切换飞行模式和上锁状态
 
 ## PositionTarget type_mask说明
 

@@ -6,12 +6,15 @@
  * @date Jan 2026
  * 
  * This node creates an ideal drone simulation that:
- * - Subscribes to mavros/setpoint_raw/local
+ * - Subscribes to mavros/setpoint_raw/local (only responds in OFFBOARD mode when armed)
  * - Publishes desired position/velocity/attitude directly to:
  *   - mavros/local_position/pose
  *   - mavros/local_position/velocity_local
  *   - mavros/local_position/odom
- * - Publishes mavros/state with armed=true and mode=OFFBOARD
+ * - Publishes mavros/state
+ * - Provides services:
+ *   - mavros/set_mode (supports PX4 flight modes)
+ *   - mavros/cmd/arming (arm/disarm control)
  */
 
 #include <ros/ros.h>
@@ -20,6 +23,8 @@
 #include <nav_msgs/Odometry.h>
 #include <mavros_msgs/PositionTarget.h>
 #include <mavros_msgs/State.h>
+#include <mavros_msgs/SetMode.h>
+#include <mavros_msgs/CommandBool.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <Eigen/Dense>
@@ -34,6 +39,10 @@ private:
     
     // Subscribers
     ros::Subscriber setpoint_sub_;
+    
+    // Service servers
+    ros::ServiceServer set_mode_srv_;
+    ros::ServiceServer arming_srv_;
     
     // Publishers
     ros::Publisher pose_pub_;
@@ -94,10 +103,18 @@ public:
         std::string velocity_topic = "mavros/local_position/velocity_local";
         std::string odom_topic = "mavros/local_position/odom";
         std::string state_topic = "mavros/state";
+        std::string set_mode_service = "mavros/set_mode";
+        std::string arming_service = "mavros/cmd/arming";
         
         // Initialize subscribers
         setpoint_sub_ = nh_.subscribe(setpoint_topic, 10, 
             &PerfectMavrosDrone::setpointCallback, this);
+        
+        // Initialize service servers
+        set_mode_srv_ = nh_.advertiseService(set_mode_service, 
+            &PerfectMavrosDrone::setModeCallback, this);
+        arming_srv_ = nh_.advertiseService(arming_service, 
+            &PerfectMavrosDrone::armingCallback, this);
         
         // Initialize publishers
         pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>(pose_topic, 10);
@@ -175,6 +192,44 @@ public:
     
     void setpointCallback(const mavros_msgs::PositionTarget::ConstPtr& msg)
     {
+        // Only respond to setpoint commands in OFFBOARD mode and when armed
+        if (current_state_.mode != "OFFBOARD" || !current_state_.armed)
+        {
+            // Not in OFFBOARD mode or not armed - keep position and yaw, set roll/pitch/velocities to zero
+            ros::Time now = ros::Time::now();
+            
+            current_pose_.header.stamp = now;
+            // Position remains unchanged
+            
+            // Extract current yaw and set roll/pitch to zero
+            tf2::Quaternion q_current;
+            tf2::fromMsg(current_pose_.pose.orientation, q_current);
+            tf2::Matrix3x3 m(q_current);
+            double roll, pitch, yaw;
+            m.getRPY(roll, pitch, yaw);
+            
+            // Reconstruct orientation with zero roll and pitch
+            tf2::Quaternion q_hover;
+            q_hover.setRPY(0.0, 0.0, yaw);
+            current_pose_.pose.orientation = tf2::toMsg(q_hover);
+            
+            // Set all velocities to zero
+            current_velocity_.header.stamp = now;
+            current_velocity_.twist.linear.x = 0.0;
+            current_velocity_.twist.linear.y = 0.0;
+            current_velocity_.twist.linear.z = 0.0;
+            current_velocity_.twist.angular.x = 0.0;
+            current_velocity_.twist.angular.y = 0.0;
+            current_velocity_.twist.angular.z = 0.0;
+            
+            // Update odometry
+            current_odom_.header.stamp = now;
+            current_odom_.pose.pose = current_pose_.pose;
+            current_odom_.twist.twist = current_velocity_.twist;
+            
+            return;
+        }
+        
         ros::Time now = ros::Time::now();
         
         // Calculate dt based on actual time
@@ -347,6 +402,79 @@ public:
         // Periodically publish state
         current_state_.header.stamp = ros::Time::now();
         state_pub_.publish(current_state_);
+    }
+    
+    bool setModeCallback(mavros_msgs::SetMode::Request& req,
+                         mavros_msgs::SetMode::Response& res)
+    {
+        ROS_INFO("[PerfectMavrosDrone] Received set_mode request: %s", req.custom_mode.c_str());
+        
+        // Define supported PX4 flight modes
+        const std::vector<std::string> supported_modes = {
+            "MANUAL",
+            "ACRO",
+            "ALTCTL",
+            "POSCTL",
+            "OFFBOARD",
+            "STABILIZED",
+            "RATTITUDE",
+            "MISSION",
+            "AUTO.LOITER",
+            "AUTO.RTL",
+            "AUTO.LAND",
+            "AUTO.TAKEOFF",
+            "AUTO.FOLLOW_TARGET",
+            "AUTO.PRECLAND"
+        };
+        
+        // Check if the requested mode is supported
+        bool mode_supported = false;
+        for (const auto& mode : supported_modes)
+        {
+            if (req.custom_mode == mode)
+            {
+                mode_supported = true;
+                break;
+            }
+        }
+        
+        if (!mode_supported)
+        {
+            ROS_WARN("[PerfectMavrosDrone] Unsupported mode: %s. Mode not changed.", req.custom_mode.c_str());
+            res.mode_sent = false;
+            return true;
+        }
+        
+        // Update the current mode
+        current_state_.mode = req.custom_mode;
+        ROS_INFO("[PerfectMavrosDrone] Mode set to %s", req.custom_mode.c_str());
+        
+        // Return success
+        res.mode_sent = true;
+        return true;
+    }
+    
+    bool armingCallback(mavros_msgs::CommandBool::Request& req,
+                        mavros_msgs::CommandBool::Response& res)
+    {
+        ROS_INFO("[PerfectMavrosDrone] Received arming request: %s", req.value ? "ARM" : "DISARM");
+        
+        // Update the armed status
+        current_state_.armed = req.value;
+        
+        if (req.value)
+        {
+            ROS_INFO("[PerfectMavrosDrone] Drone ARMED");
+        }
+        else
+        {
+            ROS_INFO("[PerfectMavrosDrone] Drone DISARMED");
+        }
+        
+        // Return success
+        res.success = true;
+        res.result = 0;
+        return true;
     }
 
 private:
