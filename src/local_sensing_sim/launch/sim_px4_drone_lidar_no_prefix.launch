@@ -11,6 +11,11 @@
     <arg name="init_z_metre" default="1.0"/>
     <arg name="init_yaw_deg" default="0.0"/>
 
+    <!-- visualizer parameters -->
+    <arg name="visualize_max_freq" default="20"/> <!-- (Hz) Maximum  Maximum base_link tf publishing rate  -->
+    <arg name="enable_history_path" default="true"/> <!-- Enable visualizing history path  -->
+    <arg name="visualize_path_time" default="10"/> <!-- (s) displaying history path time -->
+
     <group if="$(arg sensing_enable)">
         <node pkg="local_sensing_sim" type="local_pointcloud_sim_node" name="local_pointcloud_sim" output="screen">
             <param name="config_path" value="$(find local_sensing_sim)/config/local_pointcloud_sim.yaml" />
@@ -24,9 +29,9 @@
             <arg name="init_z" value="$(arg init_z_metre)"/>
             <arg name="init_yaw" value="$(arg init_yaw_deg)"/>
             <arg name="open_rviz" value="false"/>
-            <arg name="visualize_max_freq" value="20"/> <!-- (Hz) Maximum  Maximum base_link tf publishing rate  -->
-            <arg name="enable_history_path" value="true"/> <!-- Enable visualizing history path  -->
-            <arg name="visualize_path_time" value="30"/> <!-- (s) displaying history path time -->
+            <arg name="visualize_max_freq" value="$(arg visualize_max_freq)"/>
+            <arg name="enable_history_path" value="$(arg enable_history_path)"/>
+            <arg name="visualize_path_time" value="$(arg visualize_path_time)"/>
         </include>
     </group>
     
@@ -41,7 +46,10 @@
             <arg name="use_sim_time" value="false"/>
             <arg name="local_pos_source" value="0"/>
             <arg name="open_rviz" value="false"/>
-            <arg name="px4_rotor_sim_param_config_yaml" default="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+            <arg name="px4_rotor_sim_param_config_yaml" value="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+            <arg name="visualize_max_freq" value="$(arg visualize_max_freq)"/>
+            <arg name="enable_history_path" value="$(arg enable_history_path)"/>
+            <arg name="visualize_path_time" value="$(arg visualize_path_time)"/>
         </include>
     </group>
 
