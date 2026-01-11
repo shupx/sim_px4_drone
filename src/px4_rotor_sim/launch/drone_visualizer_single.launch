@@ -35,6 +35,7 @@
     
     <node pkg="px4_rotor_sim" type="px4_rotor_visualizer_node" name="px4_rotor_visualizer_node$(arg namespace)" output="screen">
         <param name="visualize_max_freq" value="$(arg visualize_max_freq)"/>
+        <param name="enable_history_path" value="$(arg enable_history_path)"/>
         <param name="visualize_path_time" value="$(arg visualize_path_time)"/>
         <param name="visualize_tf_frame" value="$(arg visualize_tf_frame)"/>
         <param name="visualize_marker_name" value="$(arg visualize_marker_name)"/>
