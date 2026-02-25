@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 project(marsim_render)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -62,6 +62,8 @@ add_library(${PROJECT_NAME}
         src/marsim_render.cpp
 )
 
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+
 target_link_libraries(${PROJECT_NAME} PUBLIC
         ${catkin_LIBRARIES}
         ${OpenCV_LIBRARIES}
@@ -84,6 +86,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 add_executable(test_render
     test/main.cpp
 )
+
+target_compile_features(test_render PUBLIC cxx_std_17)
 
 target_link_libraries(test_render PUBLIC
         ${PROJECT_NAME}
