@@ -5,6 +5,9 @@ set -e
 
 ROS_DISTRO=${ROS_DISTRO:-noetic}
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INSTALL_GEO_PATH="${SCRIPT_DIR}/install_geographiclib_from_git.sh"
+
 apt_install_if_missing() {
 	pkg="$1"
 	if dpkg -s "$pkg" >/dev/null 2>&1; then
@@ -28,11 +31,15 @@ else
 	fi
 fi
 
+# geographiclib
+bash "${INSTALL_GEO_PATH}"
+
 # marsim_render
 apt_install_if_missing libglfw3-dev
 apt_install_if_missing libglew-dev
 apt_install_if_missing libncurses5-dev
 apt_install_if_missing libncursesw5-dev
+apt_install_if_missing libopencv-dev
 
 # local_sensing_sim
 # pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple open3d numpy pyyaml # for map_generator.py (optional)
