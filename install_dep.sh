@@ -22,11 +22,12 @@ apt_install_if_missing() {
 apt_install_if_missing ros-${ROS_DISTRO}-mavros
 apt_install_if_missing ros-${ROS_DISTRO}-mavros-extras
 apt_install_if_missing ros-${ROS_DISTRO}-robot-state-publisher
+apt_install_if_missing ros-${ROS_DISTRO}-pcl-ros
 if python3 -c "import PyQt5" >/dev/null 2>&1; then
 	echo "[install_dep] PyQt5 already installed, skip"
 else
 	echo "[install_dep] installing PyQt5"
-	if ! pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple PyQt5; then
+	if ! pip3 install --only-binary=:all: -i https://pypi.tuna.tsinghua.edu.cn/simple PyQt5; then
 		echo -e "\033[33m[install_dep] WARNING: PyQt5 install failed. Please install it manually later.\033[0m"
 	fi
 fi
@@ -40,6 +41,7 @@ apt_install_if_missing libglew-dev
 apt_install_if_missing libncurses5-dev
 apt_install_if_missing libncursesw5-dev
 apt_install_if_missing libopencv-dev
+apt_install_if_missing libyaml-cpp-dev
 
 # local_sensing_sim
 # pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple open3d numpy pyyaml # for map_generator.py (optional)
