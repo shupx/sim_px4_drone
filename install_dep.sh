@@ -3,6 +3,8 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
+ROS_DISTRO=${ROS_DISTRO:-noetic}
+
 # px4_rotor_sim Dependencies
 sudo apt install ros-${ROS_DISTRO}-mavros ros-${ROS_DISTRO}-mavros-extras ros-${ROS_DISTRO}-robot-state-publisher -y
 pip3 install PyQt5
