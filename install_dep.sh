@@ -23,8 +23,8 @@ if python3 -c "import PyQt5" >/dev/null 2>&1; then
 	echo "[install_dep] PyQt5 already installed, skip"
 else
 	echo "[install_dep] installing PyQt5"
-	if ! pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple PyQt5; then
-		echo "\033[33m[install_dep] WARNING: PyQt5 install failed. Please install it manually later.\033[0m"
+	if ! pip3 install PyQt5; then
+		echo -e "\033[33m[install_dep] WARNING: PyQt5 install failed. Please install it manually later.\033[0m"
 	fi
 fi
 
