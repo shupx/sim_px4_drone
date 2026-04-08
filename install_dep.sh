@@ -23,6 +23,9 @@ apt_install_if_missing ros-${ROS_DISTRO}-mavros
 apt_install_if_missing ros-${ROS_DISTRO}-mavros-extras
 apt_install_if_missing ros-${ROS_DISTRO}-robot-state-publisher
 apt_install_if_missing ros-${ROS_DISTRO}-pcl-ros
+apt_install_if_missing ros-${ROS_DISTRO}-tf-conversions
+apt_install_if_missing ros-${ROS_DISTRO}-angles
+apt_install_if_missing ros-${ROS_DISTRO}-tf2-geometry-msgs
 if python3 -c "import PyQt5" >/dev/null 2>&1; then
 	echo "[install_dep] PyQt5 already installed, skip"
 else
