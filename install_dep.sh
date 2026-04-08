@@ -23,6 +23,7 @@ if python3 -c "import PyQt5" >/dev/null 2>&1; then
 	echo "[install_dep] PyQt5 already installed, skip"
 else
 	echo "[install_dep] installing PyQt5"
+    pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip setuptools wheel
 	pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple PyQt5
 fi
 
