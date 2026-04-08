@@ -23,8 +23,9 @@ if python3 -c "import PyQt5" >/dev/null 2>&1; then
 	echo "[install_dep] PyQt5 already installed, skip"
 else
 	echo "[install_dep] installing PyQt5"
-    pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip setuptools wheel
-	pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple PyQt5
+	if ! pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple PyQt5; then
+		echo "\033[33m[install_dep] WARNING: PyQt5 install failed. Please install it manually later.\033[0m"
+	fi
 fi
 
 # marsim_render
@@ -34,6 +35,6 @@ apt_install_if_missing libncurses5-dev
 apt_install_if_missing libncursesw5-dev
 
 # local_sensing_sim
-# pip3 install open3d numpy pyyaml # for map_generator.py (optional)
+# pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple open3d numpy pyyaml # for map_generator.py (optional)
 
 
