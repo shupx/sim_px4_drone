@@ -22,6 +22,11 @@
     <arg name="state_publish_rate" default="10.0" />
     <arg name="init_z" default="1.0" />
     <arg name="open_rviz" default="true"/>
+    <arg name="uav1_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav2_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav3_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav4_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav5_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
     
     <!-- Drone 1 -->
     <group if="$(eval num_drones >= 1)">
@@ -36,6 +41,7 @@
             <arg name="init_z" value="$(arg init_z)" />
             <arg name="init_yaw" value="0.0" />
             <arg name="open_rviz" value="false" />
+            <arg name="urdf_model_path" value="$(arg uav1_urdf_model_path)" />
         </include>
     </group>
     
@@ -52,6 +58,7 @@
             <arg name="init_z" value="$(arg init_z)" />
             <arg name="init_yaw" value="0.0" />
             <arg name="open_rviz" value="false" />
+            <arg name="urdf_model_path" value="$(arg uav2_urdf_model_path)" />
         </include>
     </group>
     
@@ -68,6 +75,7 @@
             <arg name="init_z" value="$(arg init_z)" />
             <arg name="init_yaw" value="0.0" />
             <arg name="open_rviz" value="false" />
+            <arg name="urdf_model_path" value="$(arg uav3_urdf_model_path)" />
         </include>
     </group>
     
@@ -84,6 +92,7 @@
             <arg name="init_z" value="$(arg init_z)" />
             <arg name="init_yaw" value="0.0" />
             <arg name="open_rviz" value="false" />
+            <arg name="urdf_model_path" value="$(arg uav4_urdf_model_path)" />
         </include>
     </group>
     
@@ -100,6 +109,7 @@
             <arg name="init_z" value="$(arg init_z)" />
             <arg name="init_yaw" value="0.0" />
             <arg name="open_rviz" value="false" />
+            <arg name="urdf_model_path" value="$(arg uav5_urdf_model_path)" />
         </include>
     </group>
 

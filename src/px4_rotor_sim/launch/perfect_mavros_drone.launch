@@ -36,6 +36,7 @@
     <arg name="visualize_max_freq" default="20"/> <!-- (Hz) Maximum  Maximum base_link tf publishing rate  -->
     <arg name="enable_history_path" default="true"/> <!-- Enable visualizing history path  -->
     <arg name="visualize_path_time" default="30"/> <!-- (s) displaying history path time -->
+    <arg name="urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
     
     <group ns="$(arg namespace)">
         <node pkg="px4_rotor_sim" 
@@ -60,6 +61,7 @@
         <arg name="visualize_max_freq" value="$(arg visualize_max_freq)"/> <!-- (Hz) Maximum  Maximum base_link tf publishing rate  -->
         <arg name="enable_history_path" value="$(arg enable_history_path)"/> <!-- Enable visualizing history path  -->
         <arg name="visualize_path_time" value="$(arg visualize_path_time)"/> <!-- (s) displaying history path time -->
+        <arg name="urdf_model_path" value="$(arg urdf_model_path)"/>
     </include>
     
 </launch>

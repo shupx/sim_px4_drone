@@ -6,6 +6,16 @@
     <!-- 0: mavros/local_position/pose will output the world coordinates of the drone -->
     <!-- 1: mavros/local_position/pose will output the coordinates relative to the initial point or gp_origin which can be changed by mavros/globa_position/set_gp_origin -->
     <arg name="open_rviz" default="true"/>
+    <arg name="uav1_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav2_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav3_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav4_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav5_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav6_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav7_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav8_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav9_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
+    <arg name="uav10_urdf_model_path" default="$(find px4_rotor_sim)/model/iris.urdf"/>
 
     <group if="$(eval num_drones >= 1)">
         <include file="$(find px4_rotor_sim)/launch/px4_rotor_sim_single.launch">
@@ -20,6 +30,7 @@
             <arg name="local_pos_source" value="$(arg local_pos_source)"/>
             <arg name="open_rviz" value="false"/>
             <arg name="px4_rotor_sim_param_config_yaml" value="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+            <arg name="urdf_model_path" value="$(arg uav1_urdf_model_path)"/>
         </include>
     </group>
 
@@ -36,6 +47,7 @@
             <arg name="local_pos_source" value="$(arg local_pos_source)"/>
             <arg name="open_rviz" value="false"/>
             <arg name="px4_rotor_sim_param_config_yaml" value="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+            <arg name="urdf_model_path" value="$(arg uav2_urdf_model_path)"/>
         </include>
     </group>
 
@@ -52,6 +64,7 @@
             <arg name="local_pos_source" value="$(arg local_pos_source)"/>
             <arg name="open_rviz" value="false"/>
             <arg name="px4_rotor_sim_param_config_yaml" value="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+            <arg name="urdf_model_path" value="$(arg uav3_urdf_model_path)"/>
         </include>
     </group>
 
@@ -68,6 +81,7 @@
             <arg name="local_pos_source" value="$(arg local_pos_source)"/>
             <arg name="open_rviz" value="false"/>
             <arg name="px4_rotor_sim_param_config_yaml" value="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+            <arg name="urdf_model_path" value="$(arg uav4_urdf_model_path)"/>
         </include>
     </group>
 
@@ -84,6 +98,7 @@
             <arg name="local_pos_source" value="$(arg local_pos_source)"/>
             <arg name="open_rviz" value="false"/>
             <arg name="px4_rotor_sim_param_config_yaml" value="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+            <arg name="urdf_model_path" value="$(arg uav5_urdf_model_path)"/>
         </include>
     </group>
 
@@ -100,6 +115,7 @@
             <arg name="local_pos_source" value="$(arg local_pos_source)"/>
             <arg name="open_rviz" value="false"/>
             <arg name="px4_rotor_sim_param_config_yaml" value="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+            <arg name="urdf_model_path" value="$(arg uav6_urdf_model_path)"/>
         </include>
     </group>
 
@@ -116,6 +132,7 @@
             <arg name="local_pos_source" value="$(arg local_pos_source)"/>
             <arg name="open_rviz" value="false"/>
             <arg name="px4_rotor_sim_param_config_yaml" value="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+            <arg name="urdf_model_path" value="$(arg uav7_urdf_model_path)"/>
         </include>
     </group>
 
@@ -132,6 +149,7 @@
             <arg name="local_pos_source" value="$(arg local_pos_source)"/>
             <arg name="open_rviz" value="false"/>
             <arg name="px4_rotor_sim_param_config_yaml" value="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+            <arg name="urdf_model_path" value="$(arg uav8_urdf_model_path)"/>
         </include>
     </group>
 
@@ -148,6 +166,7 @@
             <arg name="local_pos_source" value="$(arg local_pos_source)"/>
             <arg name="open_rviz" value="false"/>
             <arg name="px4_rotor_sim_param_config_yaml" value="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+            <arg name="urdf_model_path" value="$(arg uav9_urdf_model_path)"/>
         </include>
     </group>
 
@@ -164,6 +183,7 @@
             <arg name="local_pos_source" value="$(arg local_pos_source)"/>
             <arg name="open_rviz" value="false"/>
             <arg name="px4_rotor_sim_param_config_yaml" value="$(find px4_rotor_sim)/launch/px4_rotor_sim_param.yaml"/>
+            <arg name="urdf_model_path" value="$(arg uav10_urdf_model_path)"/>
         </include>
     </group>
 
